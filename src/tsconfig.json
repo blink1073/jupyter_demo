@@ -1,0 +1,31 @@
+{
+  "compilerOptions": {
+    "experimentalDecorators": true,
+    "declaration": true,
+    "noImplicitAny": false,
+    "noEmitOnError": true,
+    "sourceMap": true,
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "target": "ES5",
+    "outDir": "../lib"
+  },
+  "files": [
+    "../typings/es6-collections/es6-collections.d.ts",
+    "../typings/es6-promise/es6-promise.d.ts",
+    "../typings/es6-dataview.d.ts",
+    "../typings/requirejs/r.d.ts",
+    "../typings/jquery/jquery.d.ts",
+    "../typings/codemirror/codemirror.d.ts",
+    "jupyter-js-services/index.d.ts",
+    "index.ts",
+    "cell.ts",
+    "codecell.ts",
+    "completer.ts",
+    "contexthint.ts",
+    "keyboard.ts",
+    "keyboardmanager.ts",
+    "tooltip.ts",
+    "utils.ts"
+  ]
+}
