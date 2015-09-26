@@ -9,6 +9,8 @@
  */
 "use strict";
 
+import { IKernel, KernelStatus } from './jupyter-js-services';
+
 var outputarea = require('jupyter-js-output-area');
 var utils = require('./utils');
 var keyboard = require('./keyboard');
@@ -45,7 +47,7 @@ var posEq = function(a, b) {return a.line === b.line && a.ch === b.ch;};
 var keycodes = keyboard.keycodes;
 
 export
-var CodeCell = function (kernel, options) {
+var CodeCell = function (kernel: IKernel, options) {
     /**
      * Constructor
      *
@@ -70,7 +72,6 @@ var CodeCell = function (kernel, options) {
     // even if null for V8 VM optimisation
     this.input_prompt_number = null;
     this.celltoolbar = null;
-    this.output_area = null;
 
     this.last_msg_id = null;
     this.completer = null;
@@ -269,25 +270,14 @@ CodeCell.prototype.set_kernel = function (kernel) {
  * @method execute
  */
 CodeCell.prototype.execute = function (stop_on_error) {
-    if (!this.kernel || !this.kernel.is_connected()) {
-        console.log("Can't execute, kernel is not connected.");
-        return;
-    }
 
-    this.output_area.clear_output(false, true);
+    this.output_model.state = [];
 
     if (stop_on_error === undefined) {
         stop_on_error = true;
     }
 
-    var old_msg_id = this.last_msg_id;
 
-    if (old_msg_id) {
-        this.kernel.clear_callbacks_for_msg(old_msg_id);
-        if (old_msg_id) {
-            delete (<any>CodeCell).msg_cells[old_msg_id];
-        }
-    }
     if (this.get_text().trim().length === 0) {
         // nothing to do
         this.set_input_prompt(null);
@@ -295,40 +285,34 @@ CodeCell.prototype.execute = function (stop_on_error) {
     }
     this.set_input_prompt('*');
     this.element.addClass("running");
-    var callbacks = this.get_callbacks();
-    
-    this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
-        stop_on_error : stop_on_error});
-    (<any>CodeCell).msg_cells[this.last_msg_id] = this;
-    this.render();
-    this.events.trigger('execute.CodeCell', {cell: this});
-};
 
-/**
- * Construct the default callbacks for
- * @method get_callbacks
- */
-CodeCell.prototype.get_callbacks = function () {
-    var that = this;
-    // TODO: call this.output_model.consumeMessaget(msg);
-    return {
-        shell : {
-            reply : $.proxy(this._handle_execute_reply, this),
-            payload : {
+    var options = {
+      code: this.get_text(),
+      silent: false,
+      store_history: true,
+      stop_on_error: stop_on_error
+    }
+    var future = this.kernel.execute(options);
+    future.onReply = (msg) => {
+        this._handle_execute_reply(msg);
+        /*s
+        payload : {
                 set_next_input : $.proxy(this._handle_set_next_input, this),
                 page : $.proxy(this._open_with_pager, this)
             }
-        },
-        iopub : {
-            output : function() { 
-                that.output_area.handle_output.apply(that.output_area, arguments);
-            }, 
-            clear_output : function() { 
-                that.output_area.handle_clear_output.apply(that.output_area, arguments);
-            }, 
-        },
-        input : $.proxy(this._handle_input_request, this)
-    };
+        */
+    }
+
+    future.onIOPub = (msg) => {
+        this.output_model.consumeMessage(msg);
+    }
+
+    future.onInput = (msg) => {
+        this._handle_input_request(msg);
+    }
+
+    this.render();
+    this.events.trigger('execute.CodeCell', {cell: this});
 };
 
 CodeCell.prototype._open_with_pager = function (payload) {
@@ -359,7 +343,7 @@ CodeCell.prototype._handle_set_next_input = function (payload) {
  * @private
  */
 CodeCell.prototype._handle_input_request = function (msg) {
-    this.output_area.append_raw_input(msg);
+    //this.output_area.append_raw_input(msg);
 };
 
 
@@ -390,26 +374,26 @@ CodeCell.prototype.select_all = function () {
 
 
 CodeCell.prototype.collapse_output = function () {
-    this.output_area.collapse();
+    //this.output_area.collapse();
 };
 
 
 CodeCell.prototype.expand_output = function () {
-    this.output_area.expand();
-    this.output_area.unscroll_area();
+    //this.output_area.expand();
+    //this.output_area.unscroll_area();
 };
 
 CodeCell.prototype.scroll_output = function () {
-    this.output_area.expand();
-    this.output_area.scroll_if_long();
+    //this.output_area.expand();
+    //this.output_area.scroll_if_long();
 };
 
 CodeCell.prototype.toggle_output = function () {
-    this.output_area.toggle_output();
+    //this.output_area.toggle_output();
 };
 
 CodeCell.prototype.toggle_output_scroll = function () {
-    this.output_area.toggle_scroll();
+    //this.output_area.toggle_scroll();
 };
 
 
@@ -462,7 +446,7 @@ CodeCell.prototype.set_text = function (code) {
 
 
 CodeCell.prototype.clear_output = function (wait) {
-    this.output_area.clear_output(wait);
+    this.output_model.state = [];
     this.set_input_prompt();
 };
 
@@ -470,6 +454,7 @@ CodeCell.prototype.clear_output = function (wait) {
 // JSON serialization
 
 CodeCell.prototype.fromJSON = function (data) {
+    return;
     Cell.prototype.fromJSON.apply(this, arguments);
     if (data.cell_type === 'code') {
         if (data.source !== undefined) {
@@ -480,13 +465,14 @@ CodeCell.prototype.fromJSON = function (data) {
             this.auto_highlight();
         }
         this.set_input_prompt(data.execution_count);
-        this.output_area.trusted = data.metadata.trusted || false;
-        this.output_area.fromJSON(data.outputs, data.metadata);
+        //this.output_area.trusted = data.metadata.trusted || false;
+        //this.output_area.fromJSON(data.outputs, data.metadata);
     }
 };
 
 
 CodeCell.prototype.toJSON = function () {
+    return;
     var data = Cell.prototype.toJSON.apply(this);
     data.source = this.get_text();
     // is finite protect against undefined and '*' value
@@ -497,6 +483,7 @@ CodeCell.prototype.toJSON = function () {
     }
     var outputs = this.output_area.toJSON();
     data.outputs = outputs;
+    /*
     data.metadata.trusted = this.output_area.trusted;
     data.metadata.collapsed = this.output_area.collapsed;
     if (this.output_area.scroll_state === 'auto') {
@@ -505,6 +492,7 @@ CodeCell.prototype.toJSON = function () {
         data.metadata.scrolled = this.output_area.scroll_state;
     }
     return data;
+    */
 };
 
 /**
