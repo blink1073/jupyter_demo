@@ -21,7 +21,7 @@ var arrayContains = function(arr, item) {
     return arr.indexOf(item) != -1;
 };
 
-CodeMirror.contextHint = function (editor) {
+(<any>CodeMirror).contextHint = function (editor) {
     // Find the token at the cursor
     var cur = editor.getCursor(),
         token = editor.getTokenAt(cur),
@@ -92,5 +92,3 @@ var getCompletions = function(token, editor) {
     var filterd = candidates.filter(lambda);
     return filterd;
 };
-
-exports.contextHint = CodeMirror.contextHint;

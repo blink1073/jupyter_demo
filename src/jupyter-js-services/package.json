@@ -1,0 +1,35 @@
+{
+  "name": "jupyter-js-services",
+  "version": "0.0.1",
+  "description": "Client APIs for the Jupyter services REST APIs",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "dependencies": {
+    "phosphor-disposable": "^1.0.2",
+    "phosphor-signaling": "^1.1.0"
+  },
+  "devDependencies": {
+  },
+  "scripts": {
+    "postinstall": "npm dedupe",
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jupyter/jupyter-js-services"
+  },
+  "keywords": [
+    "jupyter",
+    "services",
+    "notebook"
+  ],
+  "files": [
+    "lib/index.js",
+    "lib/index.d.ts"
+  ],
+  "author": "Project Jupyter",
+  "license": "BSD-3-Clause",
+  "bugs": {
+    "url": "https://github.com/jupyter/jupyter-js-services/issues"
+  },
+  "homepage": "https://github.com/jupyter/jupyter-js-services"
+}

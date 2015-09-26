@@ -8,6 +8,7 @@
  * @param  {string} extension - extension path.
  * @return {Promise} that resolves to an extension module handle
  */
+ export
 var load_extension = function (extension) {
     return new Promise(function(resolve, reject) {
         requirejs(["nbextensions/" + extension], function(module) {
@@ -28,6 +29,7 @@ var load_extension = function (extension) {
  * Takes n-args, where each arg is a string path to the extension.
  * @return {Promise} that resolves to a list of loaded module handles.
  */
+ export
 var load_extensions = function () {
     return Promise.all(Array.prototype.map.call(arguments, load_extension)).catch(function(err) {
         console.error("Failed to load extension" + (err.requireModules.length>1?'s':'') + ":", err.requireModules, err);
@@ -38,6 +40,7 @@ var load_extensions = function () {
  * Wait for a config section to load, and then load the extensions specified
  * in a 'load_extensions' key inside it.
  */
+ export
 function load_extensions_from_config(section) {
     section.loaded.then(function() {
         if (section.data.load_extensions) {
@@ -90,6 +93,7 @@ function load_extensions_from_config(section) {
  * regex_split('..word1 word2..', /([a-z]+)(\d+)/i);
  * // -> ['..', 'word', '1', ' ', 'word', '2', '..']
  */
+ export
 var regex_split = function (str, separator, limit) {
     var output = [],
         flags = (separator.ignoreCase ? "i" : "") +
@@ -159,7 +163,7 @@ var regex_split = function (str, separator, limit) {
 // End contributed Cross-browser RegEx Split
 //============================================================================
 
-
+export
 var uuid = function () {
     /**
      * http://www.ietf.org/rfc/rfc4122.txt
@@ -178,6 +182,7 @@ var uuid = function () {
 
 
 //Fix raw text to parse correctly in crazy XML
+export
 function xmlencode(string) {
     return string.replace(/\&/g,'&'+'amp;')
         .replace(/</g,'&'+'lt;')
@@ -189,6 +194,7 @@ function xmlencode(string) {
 
 
 //Map from terminal commands to CSS classes
+export
 var ansi_colormap = {
     "01":"ansibold",
     
@@ -291,6 +297,7 @@ function _process_numbers(attrs, numbers) {
     }
 }
 
+export
 function ansispan(str) {
     // ansispan function adapted from github.com/mmalecki/ansispan (MIT License)
     // regular ansi escapes (using the table above)
@@ -326,6 +333,7 @@ function ansispan(str) {
 // Transform ANSI color escape codes into HTML <span> tags with css
 // classes listed in the above ansi_colormap object. The actual color used
 // are set in the css file.
+export
 function fixConsole(txt) {
     txt = xmlencode(txt);
 
@@ -341,6 +349,7 @@ function fixConsole(txt) {
 
 // Remove chunks that should be overridden by the effect of
 // carriage return characters
+export
 function fixCarriageReturn(txt) {
     var tmp = txt;
     do {
@@ -352,11 +361,13 @@ function fixCarriageReturn(txt) {
 }
 
 // Locate any URLs and convert them to a anchor tag
+export
 function autoLinkUrls(txt) {
     return txt.replace(/(^|\s)(https?|ftp)(:[^'">\s]+)/gi,
         "$1<a target=\"_blank\" href=\"$2$3\">$2$3</a>");
 }
 
+export
 var points_to_pixels = function (points) {
     /**
      * A reasonably good way of converting between points and pixels.
@@ -368,6 +379,7 @@ var points_to_pixels = function (points) {
     return Math.floor(points*pixel_per_point);
 };
 
+export
 var always_new = function (constructor) {
     /**
      * wrapper around contructor to avoid requiring `var a = new constructor()`
@@ -382,6 +394,7 @@ var always_new = function (constructor) {
     };
 };
 
+export
 var url_path_join = function () {
     /**
      * join a sequence of url components with '/'
@@ -401,6 +414,7 @@ var url_path_join = function () {
     return url;
 };
 
+export
 var url_path_split = function (path) {
     /**
      * Like os.path.split for URLs.
@@ -415,6 +429,7 @@ var url_path_split = function (path) {
     }
 };
 
+export
 var parse_url = function (url) {
     /**
      * an `a` element with an href allows attr-access to the parsed segments of a URL
@@ -431,6 +446,7 @@ var parse_url = function (url) {
     return a;
 };
 
+export
 var encode_uri_components = function (uri) {
     /**
      * encode just the components of a multi-segment uri,
@@ -439,6 +455,7 @@ var encode_uri_components = function (uri) {
     return uri.split('/').map(encodeURIComponent).join('/');
 };
 
+export
 var url_join_encode = function () {
     /**
      * join a sequence of url components with '/',
@@ -448,6 +465,7 @@ var url_join_encode = function () {
 };
 
 
+export
 var splitext = function (filename) {
     /**
      * mimic Python os.path.splitext
@@ -462,6 +480,7 @@ var splitext = function (filename) {
 };
 
 
+export
 var escape_html = function (text) {
     /**
      * escape text to HTML
@@ -470,6 +489,7 @@ var escape_html = function (text) {
 };
 
 
+export
 var get_body_data = function(key) {
     /**
      * get a url-encoded item from body.data and decode it
@@ -482,6 +502,7 @@ var get_body_data = function(key) {
     return decodeURIComponent(val);
 };
 
+export
 var to_absolute_cursor_pos = function (cm, cursor) {
     /**
      * get the absolute cursor position from CodeMirror's col, ch
@@ -496,6 +517,7 @@ var to_absolute_cursor_pos = function (cm, cursor) {
     return cursor_pos;
 };
 
+export
 var from_absolute_cursor_pos = function (cm, cursor_pos) {
     /**
      * turn absolute cursor position into CodeMirror col, ch cursor
@@ -521,7 +543,8 @@ var from_absolute_cursor_pos = function (cm, cursor_pos) {
 };
 
 // http://stackoverflow.com/questions/2400935/browser-detection-in-javascript
-var browser = (function() {
+export
+var browser = (function(): any {
     if (typeof navigator === 'undefined') {
         // navigator undefined in node
         return 'None';
@@ -534,6 +557,7 @@ var browser = (function() {
 })();
 
 // http://stackoverflow.com/questions/11219582/how-to-detect-my-browser-version-and-operating-system-using-javascript
+export
 var platform = (function () {
     if (typeof navigator === 'undefined') {
         // navigator undefined in node
@@ -547,6 +571,7 @@ var platform = (function () {
     return OSName;
 })();
 
+export
 var get_url_param = function (name) {
     // get a URL parameter. I cannot believe we actually need this.
     // Based on http://stackoverflow.com/a/25359264/938949
@@ -556,6 +581,7 @@ var get_url_param = function (name) {
     }
 };
 
+export
 var is_or_has = function (a, b) {
     /**
      * Is b a child of a or a itself?
@@ -563,6 +589,7 @@ var is_or_has = function (a, b) {
     return a.has(b).length !==0 || a.is(b);
 };
 
+export
 var is_focused = function (e) {
     /**
      * Is element e, or one of its children focused?
@@ -580,12 +607,14 @@ var is_focused = function (e) {
     }
 };
 
+export
 var mergeopt = function(_class, options, overwrite){
     options = options || {};
     overwrite = overwrite || {};
     return $.extend(true, {}, _class.options_default, options, overwrite);
 };
 
+export
 var ajax_error_msg = function (jqXHR) {
     /**
      * Return a JSON error message if there is one,
@@ -599,6 +628,7 @@ var ajax_error_msg = function (jqXHR) {
         return jqXHR.statusText;
     }
 };
+export
 var log_ajax_error = function (jqXHR, status, error) {
     /**
      * log ajax failures with informative messages
@@ -609,6 +639,7 @@ var log_ajax_error = function (jqXHR, status, error) {
     console.log(msg);
 };
 
+export
 var requireCodeMirrorMode = function (mode, callback, errback) {
     /** 
      * find a predefined mode or detect from CM metadata then
@@ -621,7 +652,7 @@ var requireCodeMirrorMode = function (mode, callback, errback) {
 
         
     // simplest, cheapest check by mode name: mode may also have config
-    if (CodeMirror.modes.hasOwnProperty(modename)) {
+    if ((<any>CodeMirror).modes.hasOwnProperty(modename)) {
         // return the full mode object, if it has a name
         callback(mode.name ? mode : modename);
         return;
@@ -630,9 +661,9 @@ var requireCodeMirrorMode = function (mode, callback, errback) {
     // *somehow* get back a CM.modeInfo-like object that has .mode and
     // .mime
     var info = (mode && mode.mode && mode.mime && mode) ||
-        CodeMirror.findModeByName(modename) ||
-        CodeMirror.findModeByExtension(modename.split(".").slice(-1)) ||
-        CodeMirror.findModeByMIME(modename) ||
+        (<any>CodeMirror).findModeByName(modename) ||
+        (<any>CodeMirror).findModeByExtension(modename.split(".").slice(-1)) ||
+        (<any>CodeMirror).findModeByMIME(modename) ||
         {mode: modename, mime: modename};
 
     requirejs([
@@ -652,16 +683,18 @@ var XHR_ERROR = 'XhrError';
 /**
  * Wraps an AJAX error as an Error object.
  */
+ export
 var wrap_ajax_error = function (jqXHR, status, error) {
     var wrapped_error = new Error(ajax_error_msg(jqXHR));
     wrapped_error.name =  XHR_ERROR;
     // provide xhr response
-    wrapped_error.xhr = jqXHR;
-    wrapped_error.xhr_status = status;
-    wrapped_error.xhr_error = error;
+    (<any>wrapped_error).xhr = jqXHR;
+    (<any>wrapped_error).xhr_status = status;
+    (<any>wrapped_error).xhr_error = error;
     return wrapped_error;
 };
 
+export
 var promising_ajax = function(url, settings) {
     /**
      * Like $.ajax, but returning an ES6 promise. success and error settings
@@ -680,6 +713,7 @@ var promising_ajax = function(url, settings) {
     });
 };
 
+export
 var WrappedError = function(message, error){
     /**
      * Wrappable Error class
@@ -710,6 +744,7 @@ var WrappedError = function(message, error){
 WrappedError.prototype = Object.create(Error.prototype, {});
 
 
+export
 var load_class = function(class_name, module_name, registry) {
     /**
      * Tries to load a class
@@ -758,6 +793,7 @@ var resolve_promises_dict = function(d) {
     });
 };
 
+export
 var reject = function(message, log) {
     /**
      * Creates a wrappable Promise rejection function.
@@ -767,48 +803,8 @@ var reject = function(message, log) {
      * caused the promise to reject.
      */
     return function(error) { 
-        var wrapped_error = new WrappedError(message, error);
+        var wrapped_error = new (<any>WrappedError)(message, error);
         if (log) console.error(wrapped_error); 
         return Promise.reject(wrapped_error); 
     };
-};
-
-
-module.exports = {
-    load_extension: load_extension,
-    load_extensions: load_extensions,
-    load_extensions_from_config: load_extensions_from_config,
-    regex_split : regex_split,
-    uuid : uuid,
-    fixConsole : fixConsole,
-    fixCarriageReturn : fixCarriageReturn,
-    autoLinkUrls : autoLinkUrls,
-    points_to_pixels : points_to_pixels,
-    get_body_data : get_body_data,
-    parse_url : parse_url,
-    url_path_split : url_path_split,
-    url_path_join : url_path_join,
-    url_join_encode : url_join_encode,
-    encode_uri_components : encode_uri_components,
-    splitext : splitext,
-    escape_html : escape_html,
-    always_new : always_new,
-    to_absolute_cursor_pos : to_absolute_cursor_pos,
-    from_absolute_cursor_pos : from_absolute_cursor_pos,
-    browser : browser,
-    platform: platform,
-    get_url_param: get_url_param,
-    is_or_has : is_or_has,
-    is_focused : is_focused,
-    mergeopt: mergeopt,
-    ajax_error_msg : ajax_error_msg,
-    log_ajax_error : log_ajax_error,
-    requireCodeMirrorMode : requireCodeMirrorMode,
-    XHR_ERROR : XHR_ERROR,
-    wrap_ajax_error : wrap_ajax_error,
-    promising_ajax : promising_ajax,
-    WrappedError: WrappedError,
-    load_class: load_class,
-    resolve_promises_dict: resolve_promises_dict,
-    reject: reject
 };

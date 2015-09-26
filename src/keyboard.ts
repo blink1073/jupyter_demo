@@ -11,7 +11,7 @@
 "use strict";
 
 var utils = require('./utils');
-
+var _ = require('underscore');
 
 /**
  * Setup global keycodes and inverse keycodes.
@@ -62,9 +62,10 @@ if (browser === 'Firefox' || browser === 'Opera' || browser === 'Netscape') {
     $.extend(_keycodes, _ie_keycodes);
 }
 
-var keycodes = {};
-var inv_keycodes = {};
-for (var name in _keycodes) {
+var keycodes: any = {};
+var inv_keycodes: any = {};
+var name: string;
+for (name in _keycodes) {
     var names = name.split(' ');
     if (names.length === 1) {
         var n = names[0];
@@ -79,10 +80,12 @@ for (var name in _keycodes) {
     }
 }
 
+export
 var normalize_key = function (key) {
     return inv_keycodes[keycodes[key]];
 };
 
+export
 var normalize_shortcut = function (shortcut) {
     /**
      * @function _normalize_shortcut
@@ -121,6 +124,8 @@ var normalize_shortcut = function (shortcut) {
     }
 };
 
+
+export
 var shortcut_to_event = function (shortcut, type) {
     /**
      * Convert a shortcut (shift-r) to a jQuery Event object
@@ -129,9 +134,9 @@ var shortcut_to_event = function (shortcut, type) {
     shortcut = normalize_shortcut(shortcut);
     shortcut = shortcut.replace(/-$/, 'minus');  // catch shortcuts using '-' key
     var values = shortcut.split("-");
-    var modifiers = values.slice(0,-1);
+    var modifiers: any = values.slice(0,-1);
     var key = values[values.length-1];
-    var opts = {which: keycodes[key]};
+    var opts: any = {which: keycodes[key]};
     if (modifiers.indexOf('alt') !== -1) {opts.altKey = true;}
     if (modifiers.indexOf('ctrl') !== -1) {opts.ctrlKey = true;}
     if (modifiers.indexOf('meta') !== -1) {opts.metaKey = true;}
@@ -139,6 +144,7 @@ var shortcut_to_event = function (shortcut, type) {
     return $.Event(type, opts);
 };
 
+export
 var only_modifier_event = function(event){
     /**
      * Return `true` if the event only contains modifiers keys.
@@ -150,6 +156,7 @@ var only_modifier_event = function(event){
 
 };
 
+export
 var event_to_shortcut = function (event) {
     /**
      * Convert a jQuery Event object to a normalized shortcut string (shift-r)
@@ -165,7 +172,7 @@ var event_to_shortcut = function (event) {
 };
 
 // Shortcut manager class
-
+export
 var ShortcutManager = function (delay, events, actions, env) {
     /**
      * A class to deal with keyboard event and shortcut
@@ -294,7 +301,7 @@ ShortcutManager.prototype._get_leaf = function(shortcut_array, tree){
 };
 
 ShortcutManager.prototype.set_shortcut = function( shortcut, action_name){
-    if( typeof(action_name) !== 'string'){throw new Error('action is not a string', action_name);}
+    if( typeof(action_name) !== 'string'){throw new Error('action is not a string' + String(action_name));}
     if( typeof(shortcut) === 'string'){
         shortcut = shortcut.split(',');
     }
@@ -359,7 +366,7 @@ ShortcutManager.prototype.add_shortcut = function (shortcut, data, suppress_help
      **/
     var action_name = this.actions.get_name(data);
     if (! action_name){
-      throw new Error('does not know how to deal with', data);
+      throw new Error('does not know how to deal with' +  String(data));
     }
     shortcut = normalize_shortcut(shortcut);
     this.set_shortcut(shortcut, action_name);
@@ -404,7 +411,7 @@ ShortcutManager.prototype.remove_shortcut = function (shortcut, suppress_help_up
         this.events.trigger('rebuild.QuickHelp');
       }
     } catch (ex) {
-      throw new Error('trying to remove a non-existent shortcut', shortcut);
+      throw new Error('trying to remove a non-existent shortcut' + String(shortcut));
     }
 };
 
@@ -452,12 +459,3 @@ ShortcutManager.prototype.handles = function (event) {
     return (typeof(action_name) !== 'undefined');
 };
 
-module.exports = {
-    keycodes : keycodes,
-    inv_keycodes : inv_keycodes,
-    ShortcutManager : ShortcutManager,
-    normalize_key : normalize_key,
-    normalize_shortcut : normalize_shortcut,
-    shortcut_to_event : shortcut_to_event,
-    event_to_shortcut : event_to_shortcut,
-};

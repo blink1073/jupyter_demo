@@ -74,6 +74,7 @@ function shared_start(B, drop_prct) {
 }
 
 
+export
 var Completer = function (cell, events) {
     this.cell = cell;
     this.editor = cell.code_mirror;
@@ -100,10 +101,10 @@ Completer.prototype.startCompletion = function () {
 
 // easy access for julia to monkeypatch
 //
-Completer.reinvoke_re = /[%0-9a-z._/\\:~-]/i;
+(<any>Completer).reinvoke_re = /[%0-9a-z._/\\:~-]/i;
 
 Completer.prototype.reinvoke= function(pre_cursor, block, cursor){
-    return Completer.reinvoke_re.test(pre_cursor);
+    return (<any>Completer).reinvoke_re.test(pre_cursor);
 };
 
 /**
@@ -184,7 +185,7 @@ Completer.prototype.finish_completing = function (msg) {
             start = end + start;
         }
     }
-    var results = CodeMirror.contextHint(this.editor);
+    var results = (<any>CodeMirror).contextHint(this.editor);
     var filtered_results = [];
     //remove results from context completion
     //that are already in kernel completion
@@ -403,5 +404,3 @@ Completer.prototype.keypress = function (event) {
         that.carry_on_completion();
     }, 50);
 };
-
-exports.Completer = Completer;

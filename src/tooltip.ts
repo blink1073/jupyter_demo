@@ -5,6 +5,7 @@
 var utils = require('base/js/utils');
 
 // tooltip constructor
+export
 var Tooltip = function (events) {
     var that = this;
     this.events = events;
@@ -181,7 +182,7 @@ Tooltip.prototype.pending = function (cell, hide_if_no_docstring) {
 };
 
 // easy access for julia monkey patching.
-Tooltip.last_token_re = /[a-z_][0-9a-z._]*$/gi;
+(<any>Tooltip).last_token_re = /[a-z_][0-9a-z._]*$/gi;
 
 Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
     var callbacks = $.proxy(this._show, this);
@@ -314,5 +315,3 @@ Tooltip.prototype._show = function (reply) {
     // keep scroll top to be sure to always see the first line
     this.text.scrollTop(0);
 };
-
-exports.Tooltip = Tooltip;

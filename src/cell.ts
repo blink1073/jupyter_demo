@@ -12,21 +12,7 @@
 
 var utils = require('./utils');
 
-var overlayHack = CodeMirror.scrollbarModel.native.prototype.overlayHack;
-
-CodeMirror.scrollbarModel.native.prototype.overlayHack = function () {
-    overlayHack.apply(this, arguments);
-    // Reverse `min-height: 18px` scrollbar hack on OS X
-    // which causes a dead area, making it impossible to click on the last line
-    // when there is horizontal scrolling to do and the "show scrollbar only when scrolling" behavior
-    // is enabled.
-    // This, in turn, has the undesirable behavior of never showing the horizontal scrollbar,
-    // even when it should, which is less problematic, at least.
-    if (/Mac/.test(navigator.platform)) {
-        this.horiz.style.minHeight = "";
-    }
-};
-
+export
 var Cell = function (options) {
     /* Constructor
      *
@@ -102,7 +88,7 @@ var Cell = function (options) {
     }
 };
 
-Cell.options_default = {
+(<any>Cell).options_default = {
     cm_config : {
         indentUnit : 4,
         readOnly: false,
@@ -119,7 +105,7 @@ Cell.options_default = {
 // by disabling drag/drop altogether on Safari
 // https://github.com/codemirror/CodeMirror/issues/332    
 if (utils.browser[0] == "Safari") {
-    Cell.options_default.cm_config.dragDrop = false;
+    (<any>Cell).options_default.cm_config.dragDrop = false;
 }
 
 /**
@@ -432,7 +418,7 @@ Cell.prototype.set_text = function (text) {
  * @method toJSON
  **/
 Cell.prototype.toJSON = function () {
-    var data = {};
+    var data: any = {};
     // deepcopy the metadata so copied cells don't share the same object
     data.metadata = JSON.parse(JSON.stringify(this.metadata));
     data.cell_type = this.cell_type;
@@ -560,7 +546,7 @@ Cell.prototype._auto_highlight = function (modes) {
     if( this.user_highlight !== undefined &&  this.user_highlight != 'auto' )
     {
         mode = this.user_highlight;
-        CodeMirror.autoLoadMode(this.code_mirror, mode);
+        (<any>CodeMirror).autoLoadMode(this.code_mirror, mode);
         this.code_mirror.setOption('mode', mode);
         return;
     }
@@ -602,12 +588,12 @@ Cell.prototype._auto_highlight = function (modes) {
                     // create on the fly a mode that switch between
                     // plain/text and something else, otherwise `%%` is
                     // source of some highlight issues.
-                    CodeMirror.defineMode(magic_mode, function(config) {
-                        return CodeMirror.multiplexingMode(
-                            CodeMirror.getMode(config, 'text/plain'),
+                    (<any>CodeMirror).defineMode(magic_mode, function(config) {
+                        return (<any>CodeMirror).multiplexingMode(
+                            (<any>CodeMirror).getMode(config, 'text/plain'),
                             // always set something on close
                             {open: open, close: close,
-                             mode: CodeMirror.getMode(config, spec),
+                             mode: (<any>CodeMirror).getMode(config, spec),
                              delimStyle: "delimit"
                             }
                         );
@@ -631,6 +617,7 @@ Cell.prototype._auto_highlight = function (modes) {
     this.code_mirror.setOption('mode', default_mode);
 };
 
+export
 var UnrecognizedCell = function (options) {
     /** Constructor for unrecognized cells */
     Cell.apply(this, arguments);
@@ -694,9 +681,4 @@ UnrecognizedCell.prototype.bind_events = function () {
     this.element.find('.inner_cell').find("a").click(function () {
         cell.events.trigger('unrecognized_cell.Cell', {cell: cell});
     });
-};
-
-module.exports = {
-    Cell: Cell,
-    UnrecognizedCell: UnrecognizedCell
 };

@@ -1,6 +1,7 @@
 {
   "scripts": {
-    "postinstall": "npm dedupe"
+    "build": "tsc --project src",
+    "postinstall": "npm dedupe && cd src/jupyter-js-services && npm install"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
@@ -8,11 +9,16 @@
     "codemirror": "^5.7.0",
     "glob": "^5.0.14",
     "less": "~2",
-    "jQuery": "^1.7.4",
+    "jquery": "^2.1.4",
     "jupyter-js-output-area": "^0.0.5",
     "jupyter-js-services": "git://github.com/jupyter/jupyter-js-services.git",
     "mkdirp": "^0.5.1",
+    "phosphor-disposable": "^1.0.2",
+    "phosphor-signaling": "^1.1.0",
     "requirejs": "^2.1.20",
-    "rimraf": "^2.4.2"
+    "rimraf": "^2.4.2",
+    "typedoc": "git://github.com/phosphorjs/typedoc.git",
+    "typescript": "^1.6.2",
+    "underscore": "^1.8.3"
   }
 }

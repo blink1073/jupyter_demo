@@ -1,0 +1,62 @@
+import { ISignal } from 'phosphor-signaling';
+import { IKernel, IKernelId } from './ikernel';
+/**
+ * Notebook Identification specification.
+ */
+export interface INotebookId {
+    path: string;
+}
+/**
+ * Session Identification specification.
+ */
+export interface ISessionId {
+    id: string;
+    notebook: INotebookId;
+    kernel: IKernelId;
+}
+/**
+ * Session initialization options.
+ */
+export interface ISessionOptions {
+    notebookPath: string;
+    kernelName: string;
+    baseUrl: string;
+    wsUrl?: string;
+    username?: string;
+    clientId?: string;
+}
+/**
+ * Interface of a notebook session object.
+ */
+export interface INotebookSession {
+    /**
+     * Get the session died signal.
+     */
+    sessionDied: ISignal<INotebookSession, void>;
+    /**
+     * Unique id of the session.
+     *
+     * Read only.
+     */
+    id: string;
+    /**
+     * The path to the notebook.
+     *
+     * Read only.
+     */
+    notebookPath: string;
+    /**
+     * The kernel.
+     *
+     * Read only.
+     */
+    kernel: IKernel;
+    /**
+     * Rename the notebook.
+     */
+    renameNotebook(path: string): Promise<void>;
+    /**
+     * Kill the kernel and shutdown the session.
+     */
+    shutdown(): Promise<void>;
+}

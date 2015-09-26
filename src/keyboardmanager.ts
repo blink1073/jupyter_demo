@@ -14,6 +14,7 @@ var keyboard = require('./keyboard');
 // Main keyboard manager for the notebook
 var keycodes = keyboard.keycodes;
 
+export
 var KeyboardManager = function (options) {
     /**
      * A class to deal with keyboard event and shortcut
@@ -124,7 +125,7 @@ KeyboardManager.prototype.get_default_command_shortcuts = function() {
 KeyboardManager.prototype.bind_events = function () {
     var that = this;
     $(document).keydown(function (event) {
-        if(event._ipkmIgnore===true||(event.originalEvent||{})._ipkmIgnore===true){
+        if((<any>event)._ipkmIgnore===true||(event.originalEvent||(<any>{}))._ipkmIgnore===true){
             return false;
         }
         return that.handle_keydown(event);
@@ -221,5 +222,3 @@ KeyboardManager.prototype.register_events = function (e) {
         }
     });
 };
-
-exports.KeyboardManager = KeyboardManager;

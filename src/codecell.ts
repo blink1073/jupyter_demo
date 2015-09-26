@@ -27,7 +27,7 @@ var posEq = function(a, b) {return a.line === b.line && a.ch === b.ch;};
  * or first multiple of 4 tabstop.
  * @private
  */
-CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
+(<any>CodeMirror).commands.delSpaceToPrevTabStop = function(cm){
     var from = cm.getCursor(true), to = cm.getCursor(false), sel = !posEq(from, to);
     if (!posEq(from, to)) { cm.replaceRange("", from, to); return; }
     var cur = cm.getCursor(), line = cm.getLine(cur.line);
@@ -44,6 +44,7 @@ CodeMirror.commands.delSpaceToPrevTabStop = function(cm){
 
 var keycodes = keyboard.keycodes;
 
+export
 var CodeCell = function (kernel, options) {
     /**
      * Constructor
@@ -75,7 +76,7 @@ var CodeCell = function (kernel, options) {
     this.completer = null;
 
     Cell.apply(this,[{
-        config: $.extend({}, CodeCell.options_default), 
+        config: $.extend({}, (<any>CodeCell).options_default), 
         keyboard_manager: options.keyboard_manager, 
         events: this.events}]);
 
@@ -87,7 +88,7 @@ var CodeCell = function (kernel, options) {
     );
 };
 
-CodeCell.options_default = {
+(<any>CodeCell).options_default = {
     cm_config : {
         extraKeys: {
             "Tab" :  "indentMore",
@@ -112,9 +113,9 @@ CodeCell.options_default = {
     },
 };
 
-CodeCell.config_defaults = CodeCell.options_default;
+(<any>CodeCell).config_defaults = (<any>CodeCell).options_default;
 
-CodeCell.msg_cells = {};
+(<any>CodeCell).msg_cells = {};
 
 CodeCell.prototype = Object.create(Cell.prototype);
 
@@ -135,7 +136,7 @@ CodeCell.prototype.create_element = function () {
         notebook: this.notebook});
     inner_cell.append(this.celltoolbar.element);
     var input_area = $('<div/>').addClass('input_area');
-    this.code_mirror = new CodeMirror(input_area.get(0), this._options.cm_config);
+    this.code_mirror = new (<any>CodeMirror)(input_area.get(0), this._options.cm_config);
     // In case of bugs that put the keyboard manager into an inconsistent state,
     // ensure KM is enabled when CodeMirror is focused:
     this.code_mirror.on('focus', function () {
@@ -150,9 +151,9 @@ CodeCell.prototype.create_element = function () {
 
     this.element = cell;
 
-    this.output_model = new OutputModel();
-    this.output_view = new OutputView(model, document);
-    cell.append(input).append(output.el);
+    this.output_model = new outputarea.OutputModel();
+    this.output_view = new outputarea.OutputView(this.output_model, document);
+    cell.append(input).append(this.output_view.el);
 
     this.completer = new completer.Completer(this, this.events);
 };
@@ -284,7 +285,7 @@ CodeCell.prototype.execute = function (stop_on_error) {
     if (old_msg_id) {
         this.kernel.clear_callbacks_for_msg(old_msg_id);
         if (old_msg_id) {
-            delete CodeCell.msg_cells[old_msg_id];
+            delete (<any>CodeCell).msg_cells[old_msg_id];
         }
     }
     if (this.get_text().trim().length === 0) {
@@ -298,7 +299,7 @@ CodeCell.prototype.execute = function (stop_on_error) {
     
     this.last_msg_id = this.kernel.execute(this.get_text(), callbacks, {silent: false, store_history: true,
         stop_on_error : stop_on_error});
-    CodeCell.msg_cells[this.last_msg_id] = this;
+    (<any>CodeCell).msg_cells[this.last_msg_id] = this;
     this.render();
     this.events.trigger('execute.CodeCell', {cell: this});
 };
@@ -412,7 +413,7 @@ CodeCell.prototype.toggle_output_scroll = function () {
 };
 
 
-CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
+(<any>CodeCell).input_prompt_classical = function (prompt_value, lines_number) {
     var ns;
     if (prompt_value === undefined || prompt_value === null) {
         ns = "&nbsp;";
@@ -422,15 +423,15 @@ CodeCell.input_prompt_classical = function (prompt_value, lines_number) {
     return 'In&nbsp;[' + ns + ']:';
 };
 
-CodeCell.input_prompt_continuation = function (prompt_value, lines_number) {
-    var html = [CodeCell.input_prompt_classical(prompt_value, lines_number)];
+(<any>CodeCell).input_prompt_continuation = function (prompt_value, lines_number) {
+    var html = [(<any>CodeCell).input_prompt_classical(prompt_value, lines_number)];
     for(var i=1; i < lines_number; i++) {
         html.push(['...:']);
     }
     return html.join('<br/>');
 };
 
-CodeCell.input_prompt_function = CodeCell.input_prompt_classical;
+(<any>CodeCell).input_prompt_function = (<any>CodeCell).input_prompt_classical;
 
 
 CodeCell.prototype.set_input_prompt = function (number) {
@@ -439,7 +440,7 @@ CodeCell.prototype.set_input_prompt = function (number) {
        nline = this.code_mirror.lineCount();
     }
     this.input_prompt_number = number;
-    var prompt_html = CodeCell.input_prompt_function(this.input_prompt_number, nline);
+    var prompt_html = (<any>CodeCell).input_prompt_function(this.input_prompt_number, nline);
     // This HTML call is okay because the user contents are escaped.
     this.element.find('div.input_prompt').html(prompt_html);
 };
@@ -523,5 +524,3 @@ CodeCell.prototype.unselect = function (leave_selected) {
     }
     return cont;
 };
-
-exports.CodeCell = CodeCell;
