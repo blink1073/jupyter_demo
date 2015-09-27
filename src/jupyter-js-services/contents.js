@@ -15,7 +15,7 @@ var Contents = (function () {
      */
     function Contents(baseUrl) {
         this._apiUrl = "unknown";
-        this._apiUrl = utils.urlJoinEncode(baseUrl, SERVICE_CONTENTS_URL);
+        this._apiUrl = utils.urlPathJoin(baseUrl, SERVICE_CONTENTS_URL);
     }
     /**
      * Get a file or directory.
@@ -237,7 +237,7 @@ var Contents = (function () {
             args[_i - 0] = arguments[_i];
         }
         var url_parts = [this._apiUrl].concat(Array.prototype.slice.apply(args));
-        return utils.urlJoinEncode.apply(null, url_parts);
+        return utils.urlPathJoin.apply(null, url_parts);
     };
     return Contents;
 })();

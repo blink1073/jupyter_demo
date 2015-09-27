@@ -3,22 +3,38 @@
     "build": "cd src && tsc && browserify -t browserify-css index.js -o bundle.js",
     "postinstall": "npm dedupe && cd src/jupyter-js-services && npm install"
   },
+ "dependencies": {
+    "phosphor-arrays": "^1.0.3",
+    "phosphor-boxpanel": "^0.9.3",
+    "phosphor-disposable": "^1.0.2",
+    "phosphor-dockpanel": "^0.9.1",
+    "phosphor-domutil": "^0.9.4",
+    "phosphor-properties": "^1.1.0",
+    "phosphor-splitpanel": "^0.9.4",
+    "phosphor-stackedpanel": "^0.9.4",
+    "phosphor-tabs": "^0.9.5",
+    "phosphor-widget": "^0.9.8",
+    "term.js": "^0.0.7"
+  },
   "devDependencies": {
     "browserify": "^11.0.1",
     "browserify-css": "^0.6.1",
+    "browserify-istanbul": "^0.2.1",
+    "coveralls": "^2.11.4",
+    "expect.js": "^0.3.1",
+    "glob-copy": "^0.1.0",
+    "mocha": "^2.2.5",
+    "rimraf": "^2.4.2",
     "glob": "^5.0.14",
     "less": "~2",
     "jquery": "^2.1.4",
     "jupyter-js-output-area": "^0.0.5",
     "jupyter-js-services": "git://github.com/jupyter/jupyter-js-services.git",
     "mkdirp": "^0.5.1",
-    "phosphor-disposable": "^1.0.2",
-    "phosphor-signaling": "^1.1.0",
-    "phosphor-widget": "^0.9.9",
     "requirejs": "^2.1.20",
-    "rimraf": "^2.4.2",
     "typedoc": "git://github.com/phosphorjs/typedoc.git",
     "typescript": "^1.6.2",
-    "underscore": "^1.8.3"
+    "underscore": "^1.8.3",
+    "typedoc": "git://github.com/phosphorjs/typedoc.git"
   }
 }
