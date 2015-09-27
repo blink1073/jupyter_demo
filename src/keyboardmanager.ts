@@ -30,10 +30,10 @@ var KeyboardManager = function (options) {
     this.enabled = true;
     this.pager = options.pager;
     this.quick_help = undefined;
-    this.notebook = undefined;
+    this.notebook = options.notebook;
     this.last_mode = undefined;
     this.bind_events();
-    this.env = {pager:this.pager};
+    this.env = {pager:this.pager, notebook: this.notebook};
     this.actions = options.actions;
     this.command_shortcuts = new keyboard.ShortcutManager(undefined, options.events, this.actions, this.env );
     this.command_shortcuts.add_shortcuts(this.get_default_common_shortcuts());

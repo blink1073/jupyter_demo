@@ -9,6 +9,10 @@
 
 import $ = require('jquery');
 
+import {
+  Widget, attachWidget
+} from '../node_modules/phosphor-widget';
+
 import { 
   startNewKernel
 } from './jupyter-js-services/index';
@@ -33,16 +37,82 @@ import './style.min.css';
 import './ipython.min.css';
 
 
+class Notebook extends Widget {
+
+  static createNode(): HTMLElement {
+    var node = document.createElement('div');
+    var container = document.createElement('div');
+    container.className = 'container';
+    container.setAttribute('id', 'notebook-container');
+    var end_space = document.createElement('div');
+    end_space.className = 'end_space';
+    container.appendChild(end_space);
+    node.appendChild(container);
+    return node;
+  }
+
+  constructor(kernel) {
+    super();
+    var Events = function () {};
+    this._events = $([new Events()]);
+    var env = { notebook: this };
+
+    this._actions = new ActionHandler({ env: env });
+
+    this._manager = new KeyboardManager({
+        notebook: this,
+        events: this._events, 
+        actions: this._actions });
+    this._manager.mode = 'edit';
+
+    this._tooltip = new Tooltip(this._events);
+
+    var options = {
+      keyboard_manager: this._manager,
+      events: this._events,
+      tooltip: this._tooltip
+    }
+
+    var cell = new CodeCell(kernel, options);
+    this.node.children[0].appendChild(cell.element[0]);
+    cell.set_input_prompt();
+    console.log('set up code cell');
+
+    cell.render();
+    this._events.trigger('create.Cell', {'cell': cell, 'index': 0});
+    cell.refresh();
+    this._cells = [cell];
+    this._kernel = kernel;
+  }
+
+  execute_cell_and_select_below() {
+    this._cells[this._cells.length - 1].execute();
+    var options = {
+      keyboard_manager: this._manager,
+      events: this._events,
+      tooltip: this._tooltip
+    }
+    var cell = new CodeCell(this._kernel, options);
+    this.node.children[0].appendChild(cell.element[0]);
+    cell.set_input_prompt();
+    console.log('set up new code cell');
+
+    cell.render();
+    this._events.trigger('create.Cell', {'cell': cell, 'index': 0});
+    cell.refresh();
+    this._cells.push(cell);
+  }
+
+  private _events: any = null;
+  private _actions: any = null;
+  private _manager: any = null;
+  private _tooltip: any = null;
+  private _kernel: any = null;
+  private _cells: any[] = null;
+}
+
+
 function main(): void {
-  var Events = function () {};
-  var events = $([new Events()]);
-
-  var acts = new ActionHandler({ });
-
-  var manager = new KeyboardManager({
-        events: events, 
-        actions: acts });
-  var tooltip = new Tooltip(events);
 
   var kernelOptions = {
     baseUrl: 'http://localhost:8888',
@@ -51,18 +121,8 @@ function main(): void {
   }
   startNewKernel(kernelOptions).then((kernel) => {
     console.log('Kernel started');
-    var options = {
-      keyboard_manager: manager,
-      events: events,
-      tooltip: tooltip
-    }
-    var cell = new CodeCell(kernel, options);
-    cell.set_input_prompt();
-    console.log('set up code cell');
-    // TODO: add to the DOM
-    cell.render();
-    events.trigger('create.Cell', {'cell': cell, 'index': 0});
-    cell.refresh();
+    var notebook = new Notebook(kernel);
+    attachWidget(notebook, document.body);
   });
 }
 

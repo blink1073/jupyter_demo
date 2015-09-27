@@ -16,6 +16,7 @@
     "../typings/requirejs/r.d.ts",
     "../typings/jquery/jquery.d.ts",
     "../typings/codemirror/codemirror.d.ts",
+    "../node_modules/phosphor-widget/lib/index.d.ts",
     "jupyter-js-services/index.d.ts",
     "index.ts",
     "actions.ts",

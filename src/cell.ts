@@ -528,7 +528,7 @@ Cell.prototype.force_highlight = function(mode) {
  * @method auto_highlight
  */
 Cell.prototype.auto_highlight = function () {
-    this._auto_highlight(this.class_config.get_sync('highlight_modes'));
+    this._auto_highlight(true); //this.class_config.get_sync('highlight_modes'));
 };
 
 /**

@@ -63,6 +63,7 @@ if (browser === 'Firefox' || browser === 'Opera' || browser === 'Netscape') {
     $.extend(_keycodes, _ie_keycodes);
 }
 
+export
 var keycodes: any = {};
 var inv_keycodes: any = {};
 var name: string;
