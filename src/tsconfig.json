@@ -18,6 +18,7 @@
     "../typings/codemirror/codemirror.d.ts",
     "jupyter-js-services/index.d.ts",
     "index.ts",
+    "actions.ts",
     "cell.ts",
     "celltoolbar.ts",
     "codecell.ts",

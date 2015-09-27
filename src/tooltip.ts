@@ -3,6 +3,8 @@
 "use strict";
 
 var utils = require('./utils');
+var $ = require('jquery');
+
 
 // tooltip constructor
 export

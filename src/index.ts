@@ -14,6 +14,10 @@ import {
 } from './jupyter-js-services/index';
 
 import {
+  ActionHandler
+} from './actions';
+
+import {
   CodeCell
 } from './codecell';
 
@@ -33,7 +37,11 @@ function main(): void {
   var Events = function () {};
   var events = $([new Events()]);
 
-  var manager = new KeyboardManager(events);
+  var acts = new ActionHandler({ });
+
+  var manager = new KeyboardManager({
+        events: events, 
+        actions: acts });
   var tooltip = new Tooltip(events);
 
   var kernelOptions = {
@@ -42,6 +50,7 @@ function main(): void {
     name: 'python'
   }
   startNewKernel(kernelOptions).then((kernel) => {
+    console.log('Kernel started');
     var options = {
       keyboard_manager: manager,
       events: events,
@@ -49,6 +58,7 @@ function main(): void {
     }
     var cell = new CodeCell(kernel, options);
     cell.set_input_prompt();
+    console.log('set up code cell');
     // TODO: add to the DOM
     cell.render();
     events.trigger('create.Cell', {'cell': cell, 'index': 0});

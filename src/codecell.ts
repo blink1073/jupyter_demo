@@ -17,6 +17,7 @@ var keyboard = require('./keyboard');
 var cell = require('./cell');
 var completer = require('./completer');
 var celltoolbar = require('./celltoolbar');
+var $ = require('jquery');
 
 var Cell = cell.Cell;
 
