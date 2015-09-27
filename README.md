@@ -4,10 +4,10 @@ To install:
 npm install 
 npm run build
 
-To run the demo:
+Run the notebook server:
 
 python -m notebook --no-browser --NotebookApp.allow_origin="*"
 
-Run a separate local server from '/src':
+Run a separate local server for the demo:
 
-python -m SimpleHttpServer  # http.server on Python 3
+python src/main.py
