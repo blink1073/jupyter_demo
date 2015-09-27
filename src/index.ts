@@ -98,7 +98,8 @@ class Notebook extends Widget {
     console.log('set up new code cell');
 
     cell.render();
-    this._events.trigger('create.Cell', {'cell': cell, 'index': 0});
+    this._events.trigger('create.Cell', {'cell': cell, 
+                         'index': this._cells.length});
     cell.refresh();
     this._cells.push(cell);
   }
