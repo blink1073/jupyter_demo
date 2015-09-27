@@ -298,7 +298,7 @@ class Notebook extends Widget {
       setTimeout(() => {
         cell.code_mirror.setValue('.'); 
         cell.code_mirror.focus(); 
-        cell.code_mirror.setValue(''); 
+        cell.code_mirror.setValue('from IPython.display import HTML\nHTML("<h1>Hello, world!</h1>")'); 
       }, 100);
 
       this._cells = [cell];
@@ -347,6 +347,7 @@ function main(): void {
     lineNumbers: true,
     tabSize: 2,
   });
+  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)'); 
   var cmTab = new Tab('Codemirror');
   DockPanel.setTab(cm, cmTab);
 
