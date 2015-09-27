@@ -62,7 +62,7 @@ class TerminalWidget extends Widget {
 */
 constructor(ws_url: string, config?: ITerminalConfig) {
   super();
-  this.addClass('content');
+  this.addClass('TerminalWidget');
   this._ws = new WebSocket(ws_url);
   this._config = config || { useStyle: true };
 
@@ -348,7 +348,7 @@ function main(): void {
     tabSize: 2,
   });
   cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)'); 
-  var cmTab = new Tab('Codemirror');
+  var cmTab = new Tab('Editor');
   DockPanel.setTab(cm, cmTab);
 
   // Terminal tab
