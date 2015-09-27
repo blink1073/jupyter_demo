@@ -1,6 +1,6 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
-import * as utils from './utils';
+var utils = require('./utils');
 /**
  * The url for the contents service.
  */
@@ -9,18 +9,18 @@ var SERVICE_CONTENTS_URL = 'api/contents';
  * A contents handle passing file operations to the back-end.
  * This includes checkpointing with the normal file operations.
  */
-export class Contents {
+var Contents = (function () {
     /**
      * Create a new contents object.
      */
-    constructor(baseUrl) {
+    function Contents(baseUrl) {
         this._apiUrl = "unknown";
         this._apiUrl = utils.urlJoinEncode(baseUrl, SERVICE_CONTENTS_URL);
     }
     /**
      * Get a file or directory.
      */
-    get(path, options) {
+    Contents.prototype.get = function (path, options) {
         var settings = {
             method: "GET",
             dataType: "json",
@@ -37,18 +37,18 @@ export class Contents {
             params.content = '0';
         }
         url = url + utils.jsonToQueryString(params);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 200) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             validateContentsModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * Create a new untitled file or directory in the specified directory path.
      */
-    newUntitled(path, options) {
+    Contents.prototype.newUntitled = function (path, options) {
         var settings = {
             method: "POST",
             dataType: "json",
@@ -62,29 +62,29 @@ export class Contents {
             settings.contentType = 'application/json';
         }
         var url = this._getUrl(path);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 201) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             validateContentsModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * Delete a file.
      */
-    delete(path) {
+    Contents.prototype.delete = function (path) {
         var settings = {
             method: "DELETE",
             dataType: "json",
         };
         var url = this._getUrl(path);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 204) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
         }, // Translate certain errors to more specific ones.
-            (error) => {
+        function (error) {
             // TODO: update IPEP27 to specify errors more precisely, so
             // that error types can be detected here with certainty.
             if (error.xhr.status === 400) {
@@ -92,11 +92,11 @@ export class Contents {
             }
             throw error;
         });
-    }
+    };
     /**
      * Rename a file.
      */
-    rename(path, newPath) {
+    Contents.prototype.rename = function (path, newPath) {
         var data = { path: newPath };
         var settings = {
             method: "PATCH",
@@ -105,18 +105,18 @@ export class Contents {
             contentType: 'application/json',
         };
         var url = this._getUrl(path);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 200) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             validateContentsModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * Save a file.
      */
-    save(path, model) {
+    Contents.prototype.save = function (path, model) {
         var settings = {
             method: "PUT",
             dataType: "json",
@@ -124,7 +124,7 @@ export class Contents {
             contentType: 'application/json',
         };
         var url = this._getUrl(path);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             // will return 200 for an existing file and 201 for a new file
             if (success.xhr.status !== 200 && success.xhr.status !== 201) {
                 throw Error('Invalid Status: ' + success.xhr.status);
@@ -132,12 +132,12 @@ export class Contents {
             validateContentsModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * Copy a file into a given directory via POST
      * The server will select the name of the copied file.
      */
-    copy(fromFile, toDir) {
+    Contents.prototype.copy = function (fromFile, toDir) {
         var settings = {
             method: "POST",
             data: JSON.stringify({ copy_from: fromFile }),
@@ -145,41 +145,41 @@ export class Contents {
             dataType: "json",
         };
         var url = this._getUrl(toDir);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 201) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             validateContentsModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * Create a checkpoint for a file.
      */
-    createCheckpoint(path) {
+    Contents.prototype.createCheckpoint = function (path) {
         var settings = {
             method: "POST",
             dataType: "json",
         };
         var url = this._getUrl(path, 'checkpoints');
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 201) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             validateCheckpointModel(success.data);
             return success.data;
         });
-    }
+    };
     /**
      * List available checkpoints for a file.
      */
-    listCheckpoints(path) {
+    Contents.prototype.listCheckpoints = function (path) {
         var settings = {
             method: "GET",
             dataType: "json",
         };
         var url = this._getUrl(path, 'checkpoints');
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 200) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
@@ -191,51 +191,57 @@ export class Contents {
             }
             return success.data;
         });
-    }
+    };
     /**
      * Restore a file to a known checkpoint state.
      */
-    restoreCheckpoint(path, checkpointID) {
+    Contents.prototype.restoreCheckpoint = function (path, checkpointID) {
         var settings = {
             method: "POST",
             dataType: "json",
         };
         var url = this._getUrl(path, 'checkpoints', checkpointID);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 204) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
         });
-    }
+    };
     /**
      * Delete a checkpoint for a file.
      */
-    deleteCheckpoint(path, checkpointID) {
+    Contents.prototype.deleteCheckpoint = function (path, checkpointID) {
         var settings = {
             method: "DELETE",
             dataType: "json",
         };
         var url = this._getUrl(path, 'checkpoints', checkpointID);
-        return utils.ajaxRequest(url, settings).then((success) => {
+        return utils.ajaxRequest(url, settings).then(function (success) {
             if (success.xhr.status !== 204) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
         });
-    }
+    };
     /**
      * List notebooks and directories at a given path.
      */
-    listContents(path) {
+    Contents.prototype.listContents = function (path) {
         return this.get(path, { type: 'directory' });
-    }
+    };
     /**
      * Get an REST url for this file given a path.
      */
-    _getUrl(...args) {
+    Contents.prototype._getUrl = function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i - 0] = arguments[_i];
+        }
         var url_parts = [this._apiUrl].concat(Array.prototype.slice.apply(args));
         return utils.urlJoinEncode.apply(null, url_parts);
-    }
-}
+    };
+    return Contents;
+})();
+exports.Contents = Contents;
 /**
  * Validate a Contents Model.
  */

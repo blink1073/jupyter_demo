@@ -1,11 +1,11 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 'use strict';
-import { Signal } from 'phosphor-signaling';
-import { KernelStatus } from './ikernel';
-import { connectToKernel } from './kernel';
-import * as utils from './utils';
-import * as validate from './validate';
+var phosphor_signaling_1 = require('phosphor-signaling');
+var ikernel_1 = require('./ikernel');
+var kernel_1 = require('./kernel');
+var utils = require('./utils');
+var validate = require('./validate');
 /**
  * The url for the session service.
  */
@@ -13,12 +13,12 @@ var SESSION_SERVICE_URL = 'api/sessions';
 /**
  * Fetch the running sessions via API: GET /sessions
  */
-export function listRunningSessions(baseUrl) {
+function listRunningSessions(baseUrl) {
     var url = utils.urlPathJoin(baseUrl, SESSION_SERVICE_URL);
     return utils.ajaxRequest(url, {
         method: "GET",
         dataType: "json"
-    }).then((success) => {
+    }).then(function (success) {
         if (success.xhr.status !== 200) {
             throw Error('Invalid Status: ' + success.xhr.status);
         }
@@ -31,6 +31,7 @@ export function listRunningSessions(baseUrl) {
         return success.data;
     }, onSessionError);
 }
+exports.listRunningSessions = listRunningSessions;
 /**
  * Start a new session via API: POST /kernels
  *
@@ -38,7 +39,7 @@ export function listRunningSessions(baseUrl) {
  * when the session is fully ready to send the first message. If
  * the session fails to become ready, the promise is rejected.
  */
-export function startNewSession(options) {
+function startNewSession(options) {
     var url = utils.urlPathJoin(options.baseUrl, SESSION_SERVICE_URL);
     var model = {
         kernel: { name: options.kernelName },
@@ -49,7 +50,7 @@ export function startNewSession(options) {
         dataType: "json",
         data: JSON.stringify(model),
         contentType: 'application/json'
-    }).then((success) => {
+    }).then(function (success) {
         if (success.xhr.status !== 201) {
             throw Error('Invalid Status: ' + success.xhr.status);
         }
@@ -58,6 +59,7 @@ export function startNewSession(options) {
         return createSession(sessionId, options);
     }, onSessionError);
 }
+exports.startNewSession = startNewSession;
 /**
  * Connect to a running notebook session.
  *
@@ -72,33 +74,34 @@ export function startNewSession(options) {
  * If the session was not already started and no `options` are given,
  * the promise is rejected.
  */
-export function connectToSession(id, options) {
+function connectToSession(id, options) {
     var session = runningSessions.get(id);
     if (session) {
         return Promise.resolve(session);
     }
     if (options === void 0) {
-        throw Error('Please specify session options');
+        return Promise.reject(new Error('Please specify session options'));
     }
-    return new Promise((resolve, reject) => {
-        listRunningSessions(options.baseUrl).then((sessionIds) => {
-            var sessionIds = sessionIds.filter(k => k.id === id);
+    return new Promise(function (resolve, reject) {
+        listRunningSessions(options.baseUrl).then(function (sessionIds) {
+            var sessionIds = sessionIds.filter(function (k) { return k.id === id; });
             if (!sessionIds.length) {
                 reject(new Error('No running session with id: ' + id));
             }
-            createSession(sessionIds[0], options).then((session) => {
+            createSession(sessionIds[0], options).then(function (session) {
                 resolve(session);
             });
         });
     });
 }
+exports.connectToSession = connectToSession;
 /**
  * Create a Promise for a NotebookSession object.
  *
  * Fulfilled when the NotebookSession is Starting, or rejected if Dead.
  */
 function createSession(sessionId, options) {
-    return new Promise((resolve, reject) => {
+    return new Promise(function (resolve, reject) {
         options.notebookPath = sessionId.notebook.path;
         var kernelOptions = {
             name: sessionId.kernel.name,
@@ -107,12 +110,12 @@ function createSession(sessionId, options) {
             username: options.username,
             clientId: options.clientId
         };
-        var kernelPromise = connectToKernel(sessionId.kernel.id, kernelOptions);
-        kernelPromise.then((kernel) => {
+        var kernelPromise = kernel_1.connectToKernel(sessionId.kernel.id, kernelOptions);
+        kernelPromise.then(function (kernel) {
             var session = new NotebookSession(options, sessionId.id, kernel);
             runningSessions.set(session.id, session);
             resolve(session);
-        }).catch(() => {
+        }).catch(function () {
             reject(new Error('Session failed to start'));
         });
     });
@@ -126,11 +129,11 @@ var runningSessions = new Map();
  * should be used to start kernels and then shut them down -- for
  * all other operations, the kernel object should be used.
  **/
-class NotebookSession {
+var NotebookSession = (function () {
     /**
      * Construct a new session.
      */
-    constructor(options, id, kernel) {
+    function NotebookSession(options, id, kernel) {
         this._id = "";
         this._notebookPath = "";
         this._kernel = null;
@@ -142,34 +145,51 @@ class NotebookSession {
         this._url = utils.urlPathJoin(options.baseUrl, SESSION_SERVICE_URL, this._id);
         this._kernel.statusChanged.connect(this._kernelStatusChanged, this);
     }
-    /**
-     * Get the session died signal.
-     */
-    get sessionDied() {
-        return NotebookSession.sessionDiedSignal.bind(this);
-    }
-    /**
-     * Get the session id.
-     */
-    get id() {
-        return this._id;
-    }
-    /**
-     * Get the session kernel object.
-    */
-    get kernel() {
-        return this._kernel;
-    }
-    /**
-     * Get the notebook path.
-     */
-    get notebookPath() {
-        return this._notebookPath;
-    }
+    Object.defineProperty(NotebookSession.prototype, "sessionDied", {
+        /**
+         * Get the session died signal.
+         */
+        get: function () {
+            return NotebookSession.sessionDiedSignal.bind(this);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NotebookSession.prototype, "id", {
+        /**
+         * Get the session id.
+         */
+        get: function () {
+            return this._id;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NotebookSession.prototype, "kernel", {
+        /**
+         * Get the session kernel object.
+        */
+        get: function () {
+            return this._kernel;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(NotebookSession.prototype, "notebookPath", {
+        /**
+         * Get the notebook path.
+         */
+        get: function () {
+            return this._notebookPath;
+        },
+        enumerable: true,
+        configurable: true
+    });
     /**
      * Rename the notebook.
      */
-    renameNotebook(path) {
+    NotebookSession.prototype.renameNotebook = function (path) {
+        var _this = this;
         if (this._isDead) {
             return Promise.reject(new Error('Session is dead'));
         }
@@ -182,21 +202,22 @@ class NotebookSession {
             dataType: "json",
             data: JSON.stringify(model),
             contentType: 'application/json'
-        }).then((success) => {
+        }).then(function (success) {
             if (success.xhr.status !== 200) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
             var data = success.data;
             validate.validateSessionId(data);
-            this._notebookPath = data.notebook.path;
+            _this._notebookPath = data.notebook.path;
         }, onSessionError);
-    }
+    };
     /**
      * DELETE /api/sessions/[:session_id]
      *
      * Kill the kernel and shutdown the session.
      */
-    shutdown() {
+    NotebookSession.prototype.shutdown = function () {
+        var _this = this;
         if (this._isDead) {
             return Promise.reject(new Error('Session is dead'));
         }
@@ -204,33 +225,34 @@ class NotebookSession {
         return utils.ajaxRequest(this._url, {
             method: "DELETE",
             dataType: "json"
-        }).then((success) => {
+        }).then(function (success) {
             if (success.xhr.status !== 204) {
                 throw Error('Invalid Status: ' + success.xhr.status);
             }
-            this.sessionDied.emit(void 0);
-            this.kernel.shutdown();
-        }, (rejected) => {
-            this._isDead = false;
+            _this.sessionDied.emit(void 0);
+            _this.kernel.shutdown();
+        }, function (rejected) {
+            _this._isDead = false;
             if (rejected.xhr.status === 410) {
                 throw Error('The kernel was deleted but the session was not');
             }
             onSessionError(rejected);
         });
-    }
+    };
     /**
      * React to changes in the Kernel status.
      */
-    _kernelStatusChanged(sender, state) {
-        if (state == KernelStatus.Dead) {
+    NotebookSession.prototype._kernelStatusChanged = function (sender, state) {
+        if (state == ikernel_1.KernelStatus.Dead) {
             this.shutdown();
         }
-    }
-}
-/**
- * A signal emitted when the session dies.
- */
-NotebookSession.sessionDiedSignal = new Signal();
+    };
+    /**
+     * A signal emitted when the session dies.
+     */
+    NotebookSession.sessionDiedSignal = new phosphor_signaling_1.Signal();
+    return NotebookSession;
+})();
 /**
  * Handle an error on a session Ajax call.
  */

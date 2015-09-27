@@ -1,14 +1,14 @@
 // Copyright (c) Jupyter Development Team.
 // Distributed under the terms of the Modified BSD License.
 'use strict';
-const COMM_FIELDS = ['comm_id', 'data'];
-const HEADER_FIELDS = ['username', 'version', 'session', 'msg_id', 'msg_type'];
-const MESSAGE_FIELDS = ['header', 'parent_header', 'metadata', 'content',
+var COMM_FIELDS = ['comm_id', 'data'];
+var HEADER_FIELDS = ['username', 'version', 'session', 'msg_id', 'msg_type'];
+var MESSAGE_FIELDS = ['header', 'parent_header', 'metadata', 'content',
     'channel', 'buffers'];
 /**
  * Validate an Kernel Message as being a valid Comm Message.
  */
-export function validateCommMessage(msg) {
+function validateCommMessage(msg) {
     for (var i = 0; i < COMM_FIELDS.length; i++) {
         if (!msg.content.hasOwnProperty(COMM_FIELDS[i])) {
             console.log('*****invalid', COMM_FIELDS[i]);
@@ -33,6 +33,7 @@ export function validateCommMessage(msg) {
     }
     return true;
 }
+exports.validateCommMessage = validateCommMessage;
 function validateKernelHeader(header) {
     for (var i = 0; i < HEADER_FIELDS.length; i++) {
         if (!header.hasOwnProperty(HEADER_FIELDS[i])) {
@@ -46,7 +47,7 @@ function validateKernelHeader(header) {
 /**
  * Validate an object as being of IKernelMessage type.
  */
-export function validateKernelMessage(msg) {
+function validateKernelMessage(msg) {
     for (var i = 0; i < MESSAGE_FIELDS.length; i++) {
         if (!msg.hasOwnProperty(MESSAGE_FIELDS[i])) {
             throw Error('Invalid Kernel message');
@@ -63,10 +64,11 @@ export function validateKernelMessage(msg) {
         throw Error('Invalid Kernel message');
     }
 }
+exports.validateKernelMessage = validateKernelMessage;
 /**
  * Validate an object as being of IKernelID type
  */
-export function validateKernelId(info) {
+function validateKernelId(info) {
     if (!info.hasOwnProperty('name') || !info.hasOwnProperty('id')) {
         throw Error('Invalid kernel id');
     }
@@ -74,10 +76,11 @@ export function validateKernelId(info) {
         throw Error('Invalid kernel id');
     }
 }
+exports.validateKernelId = validateKernelId;
 /**
  * Validate an object as being of ISessionId type.
  */
-export function validateSessionId(info) {
+function validateSessionId(info) {
     if (!info.hasOwnProperty('id') ||
         !info.hasOwnProperty('notebook') ||
         !info.hasOwnProperty('kernel')) {
@@ -89,18 +92,20 @@ export function validateSessionId(info) {
     }
     validateNotebookId(info.notebook);
 }
+exports.validateSessionId = validateSessionId;
 /**
  * Validate an object as being of INotebookId type.
  */
-export function validateNotebookId(model) {
+function validateNotebookId(model) {
     if ((!model.hasOwnProperty('path')) || (typeof model.path !== 'string')) {
         throw Error('Invalid Notebook Model');
     }
 }
+exports.validateNotebookId = validateNotebookId;
 /**
  * Validate an object as being of IKernelSpecID type.
  */
-export function validateKernelSpec(info) {
+function validateKernelSpec(info) {
     var err = new Error("Invalid KernelSpec Model");
     if (!info.hasOwnProperty('name') || typeof info.name !== 'string') {
         throw err;
@@ -120,4 +125,5 @@ export function validateKernelSpec(info) {
         throw err;
     }
 }
+exports.validateKernelSpec = validateKernelSpec;
 //# sourceMappingURL=validate.js.map

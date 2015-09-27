@@ -1,12 +1,11 @@
 {
   "scripts": {
-    "build": "tsc --project src",
+    "build": "cd src && tsc && browserify -t browserify-css index.js -o bundle.js",
     "postinstall": "npm dedupe && cd src/jupyter-js-services && npm install"
   },
   "devDependencies": {
     "browserify": "^11.0.1",
     "browserify-css": "^0.6.1",
-    "codemirror": "^5.7.0",
     "glob": "^5.0.14",
     "less": "~2",
     "jquery": "^2.1.4",

@@ -7,8 +7,7 @@
     "sourceMap": true,
     "module": "commonjs",
     "moduleResolution": "node",
-    "target": "ES5",
-    "outDir": "../lib"
+    "target": "ES5"
   },
   "files": [
     "../typings/es6-collections/es6-collections.d.ts",
@@ -20,6 +19,7 @@
     "jupyter-js-services/index.d.ts",
     "index.ts",
     "cell.ts",
+    "celltoolbar.ts",
     "codecell.ts",
     "completer.ts",
     "contexthint.ts",

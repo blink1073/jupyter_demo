@@ -2,7 +2,7 @@
 // Distributed under the terms of the Modified BSD License.
 "use strict";
 
-var utils = require('base/js/utils');
+var utils = require('./utils');
 
 // tooltip constructor
 export

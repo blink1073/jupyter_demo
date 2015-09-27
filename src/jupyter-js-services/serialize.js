@@ -4,7 +4,7 @@
 /**
  * Deserialize and return the unpacked message.
  */
-export function deserialize(data) {
+function deserialize(data) {
     var value;
     if (typeof data === "string") {
         value = JSON.parse(data);
@@ -14,10 +14,11 @@ export function deserialize(data) {
     }
     return value;
 }
+exports.deserialize = deserialize;
 /**
  * Serialize a kernel message for transport.
  */
-export function serialize(msg) {
+function serialize(msg) {
     var value;
     if (msg.buffers && msg.buffers.length) {
         value = serializeBinary(msg);
@@ -27,6 +28,7 @@ export function serialize(msg) {
     }
     return value;
 }
+exports.serialize = serialize;
 /**
  * Deserialize a binary message to a Kernel Message.
  */
