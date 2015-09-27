@@ -10,7 +10,6 @@
 "use strict";
 var utils = require('./utils');
 var keyboard = require('./keyboard');
-var $ = require('jquery');
 
 // Main keyboard manager for the notebook
 var keycodes = keyboard.keycodes;

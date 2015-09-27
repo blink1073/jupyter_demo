@@ -12,7 +12,6 @@
 
 var utils = require('./utils');
 var _ = require('underscore');
-var $ = require('jquery');
 
 /**
  * Setup global keycodes and inverse keycodes.

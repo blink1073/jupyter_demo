@@ -3,8 +3,6 @@
 
 "use strict";
 
-import $ = require('jquery');
-
 /**
  * Load a single extension.
  * @param  {string} extension - extension path.

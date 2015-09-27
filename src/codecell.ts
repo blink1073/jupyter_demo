@@ -139,6 +139,8 @@ CodeCell.prototype.create_element = function () {
     inner_cell.append(this.celltoolbar.element);
     var input_area = $('<div/>').addClass('input_area');
     this.code_mirror = new (<any>CodeMirror)(input_area.get(0), this._options.cm_config);
+
+    this.code_mirror.setOption("mode", "python");
     // In case of bugs that put the keyboard manager into an inconsistent state,
     // ensure KM is enabled when CodeMirror is focused:
     this.code_mirror.on('focus', function () {
@@ -148,6 +150,7 @@ CodeCell.prototype.create_element = function () {
     });
     this.code_mirror.on('keydown', $.proxy(this.handle_keyevent,this));
     $(this.code_mirror.getInputField()).attr("spellcheck", "false");
+
     inner_cell.append(input_area);
     input.append(prompt).append(inner_cell);
 
@@ -155,6 +158,7 @@ CodeCell.prototype.create_element = function () {
 
     this.output_model = new outputarea.OutputModel();
     this.output_view = new outputarea.OutputView(this.output_model, document);
+    this.output_view.el.className = 'output_area';
     cell.append(input).append(this.output_view.el);
 
     this.completer = new completer.Completer(this, this.events);

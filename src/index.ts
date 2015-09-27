@@ -7,8 +7,6 @@
 |----------------------------------------------------------------------------*/
 'use strict';
 
-import $ = require('jquery');
-
 import {
   Widget, attachWidget
 } from '../node_modules/phosphor-widget';
@@ -42,7 +40,7 @@ class Notebook extends Widget {
   static createNode(): HTMLElement {
     var node = document.createElement('div');
     var container = document.createElement('div');
-    container.className = 'container';
+    //container.className = 'container';
     container.setAttribute('id', 'notebook-container');
     var end_space = document.createElement('div');
     end_space.className = 'end_space';
@@ -78,15 +76,25 @@ class Notebook extends Widget {
     cell.set_input_prompt();
     console.log('set up code cell');
 
-    cell.render();
     this._events.trigger('create.Cell', {'cell': cell, 'index': 0});
+    cell.select();
+    cell.focus_editor();
+    cell.render();
     cell.refresh();
+
+    setTimeout(() => {
+      cell.code_mirror.setValue('.'); 
+      cell.code_mirror.focus(); 
+      cell.code_mirror.setValue(''); 
+    }, 100);
+
     this._cells = [cell];
     this._kernel = kernel;
   }
 
   execute_cell_and_select_below() {
     this._cells[this._cells.length - 1].execute();
+    this._cells[this._cells.length - 1].unselect();
     var options = {
       keyboard_manager: this._manager,
       events: this._events,
@@ -97,10 +105,13 @@ class Notebook extends Widget {
     cell.set_input_prompt();
     console.log('set up new code cell');
 
-    cell.render();
     this._events.trigger('create.Cell', {'cell': cell, 
                          'index': this._cells.length});
+    cell.select();
+    cell.selection_anchor = true;
+    cell.focus_editor();
     cell.refresh();
+
     this._cells.push(cell);
   }
 
