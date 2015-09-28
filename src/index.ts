@@ -283,8 +283,8 @@ class FileBrowser extends Widget {
          }
          this.listDir();
       } else {
-        var text = (<HTMLElement>event.target).textContent;
-        this._contents.get(text, { type: "file" }).then(msg => {
+        var path = this._currentDir + (<HTMLElement>event.target).textContent;
+        this._contents.get(path, { type: "file" }).then(msg => {
           var onClick = this._onClick;
           if (onClick) onClick(msg.path, msg.content);
         });
@@ -471,7 +471,7 @@ function main(): void {
   DockPanel.setTab(notebook, notebookTab);
 
   // directory listing tab
-  var listing = new FileBrowser('http://localhost:8888', '.');
+  var listing = new FileBrowser('http://localhost:8888', '');
   var listingTab = new Tab('File Browser');
   DockPanel.setTab(listing, listingTab);
   listing.listDir();
