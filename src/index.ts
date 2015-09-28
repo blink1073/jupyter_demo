@@ -362,10 +362,14 @@ class Notebook extends Widget {
     return node;
   }
 
-  constructor(kernelOptions) {
+  constructor() {
     super();
     this.addClass('content');
-    startNewKernel(kernelOptions).then((kernel) => {
+  }
+
+  start(kernelOptions) {
+    startNewKernel(kernelOptions).then(kernel => {
+      this._kernel = kernel;
       console.log('Kernel started');
       var Events = function () {};
       this._events = $([new Events()]);
@@ -380,38 +384,17 @@ class Notebook extends Widget {
       this._manager.mode = 'edit';
 
       this._tooltip = new Tooltip(this._events);
-
-      var options = {
-        keyboard_manager: this._manager,
-        events: this._events,
-        tooltip: this._tooltip
-      }
-
-      var cell = new CodeCell(kernel, options);
-      this.node.children[0].appendChild(cell.element[0]);
-      cell.set_input_prompt();
-      console.log('set up code cell');
-
-      this._events.trigger('create.Cell', {'cell': cell, 'index': 0});
-      cell.select();
-      cell.focus_editor();
-      cell.render();
-      cell.refresh();
-
-      setTimeout(() => {
-        cell.code_mirror.setValue('.'); 
-        cell.code_mirror.focus(); 
-        cell.code_mirror.setValue('from IPython.display import HTML\nHTML("<h1>Hello, world!</h1>")'); 
-      }, 100);
-
-      this._cells = [cell];
-      this._kernel = kernel;
+      this._createCell();
     });
   }
 
   execute_cell_and_select_below() {
     this._cells[this._cells.length - 1].execute();
     this._cells[this._cells.length - 1].unselect();
+    this._createCell();
+  }
+
+  private _createCell() {
     var options = {
       keyboard_manager: this._manager,
       events: this._events,
@@ -419,16 +402,15 @@ class Notebook extends Widget {
     }
     var cell = new CodeCell(this._kernel, options);
     this.node.children[0].appendChild(cell.element[0]);
-    cell.set_input_prompt();
-    console.log('set up new code cell');
 
-    this._events.trigger('create.Cell', {'cell': cell, 
-                         'index': this._cells.length});
+    cell.set_input_prompt();
     cell.select();
-    cell.selection_anchor = true;
     cell.focus_editor();
+    cell.render();
     cell.refresh();
 
+    this._events.trigger('create.Cell', 
+                         { 'cell': cell, 'index': this._cells.length });
     this._cells.push(cell);
   }
 
@@ -437,11 +419,13 @@ class Notebook extends Widget {
   private _manager: any = null;
   private _tooltip: any = null;
   private _kernel: any = null;
-  private _cells: any[] = null;
+  private _cells: any[] = [];
 }
 
 
 function main(): void {
+
+  var address = 'localhost:8888';
 
   // Codemirror tab
   //
@@ -457,28 +441,29 @@ function main(): void {
 
   // Terminal tab
   //
-  var wsUrl = "ws://localhost:8888/terminals/websocket/1"
+  var wsUrl = `ws://${address}/terminals/websocket/1`;
   var term = new TerminalWidget(wsUrl);
   var termTab = new Tab('Terminal');
   DockPanel.setTab(term, termTab);
 
   // notebook tab
   var kernelOptions = {
-    baseUrl: 'http://localhost:8888',
-    wsUrl: 'ws://localhost:8888',
+    baseUrl: `http://${address}`,
+    wsUrl: `ws://${address}`,
     name: 'python'
   }
-  var notebook = new Notebook(kernelOptions);
+  var notebook = new Notebook();
+  notebook.start(kernelOptions);
   var notebookTab = new Tab('Notebook');
   DockPanel.setTab(notebook, notebookTab);
 
   // directory listing tab
-  var listing = new FileBrowser('http://localhost:8888', '');
-  var listingTab = new Tab('File Browser');
+  var listing = new FileBrowser(`http://${address}`, '');
   listing.listDir();
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
   }
+  var listingTab = new Tab('File Browser');
   DockPanel.setTab(listing, listingTab);
  
   var panel = new DockPanel();
