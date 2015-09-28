@@ -369,6 +369,10 @@ class Notebook extends Widget {
     container.className = 'container';
     container.setAttribute('id', 'notebook-container');
     node.appendChild(container);
+    var tooltip = document.createElement('div');
+    tooltip.className = 'ipython_tooltip';
+    tooltip.style.display = 'none';
+    node.appendChild(tooltip);
     return node;
   }
 
@@ -393,7 +397,7 @@ class Notebook extends Widget {
           actions: this._actions });
       this._manager.mode = 'edit';
 
-      this._tooltip = new Tooltip(this._events);
+      this._tooltip = new Tooltip(this._events, this.node.lastChild);
       this._createCell();
     });
   }
@@ -845,11 +849,6 @@ function main(): void {
 
   var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
-
-  var tooltip = document.createElement('div');
-  tooltip.id = 'tooltip';
-  tooltip.className = 'ipython_tooltip';
-  tooltip.style.display = 'none';
 
   attachWidget(panel, document.body);
   panel.update();

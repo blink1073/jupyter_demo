@@ -6,13 +6,13 @@ var utils = require('./utils');
 
 // tooltip constructor
 export
-var Tooltip = function (events) {
+var Tooltip = function (events, element) {
     var that = this;
     this.events = events;
     this.time_before_tooltip = 1200;
 
     // handle to html
-    this.tooltip = $('#tooltip');
+    this.tooltip = $(element);
     this._hidden = true;
 
     // variable for consecutive call
@@ -40,15 +40,6 @@ var Tooltip = function (events) {
         event.preventDefault();
     }).append(
     $('<span/>').text('Expand').addClass('ui-icon').addClass('ui-icon-plus'));
-
-    // open in pager
-    var morelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button').attr('title', 'show the current docstring in pager (press shift-tab 4 times)');
-    var morespan = $('<span/>').text('Open in Pager').addClass('ui-icon').addClass('ui-icon-arrowstop-l-n');
-    morelink.append(morespan);
-    morelink.click(function () {
-        that.showInPager(that._old_cell);
-        event.preventDefault();
-    });
 
     // close the tooltip
     var closelink = $('<a/>').attr('href', "#").attr('role', "button").addClass('ui-button');
@@ -79,7 +70,6 @@ var Tooltip = function (events) {
     // add in the reverse order you want them to appear
     this.buttons.append(closelink);
     this.buttons.append(expandlink);
-    this.buttons.append(morelink);
     this.buttons.append(this._clocklink);
     this._clocklink.hide();
 
@@ -120,7 +110,7 @@ Tooltip.prototype.showInPager = function (cell) {
     /**
      * reexecute last call in pager by appending ? to show back in pager
      */
-    this.events.trigger('open_with_text.Pager', this._reply.content);
+    this.events.trigger('open_with_text.Pager', this._reply);
     this.remove_and_cancel_tooltip();
 };
 
@@ -185,9 +175,13 @@ Tooltip.prototype.pending = function (cell, hide_if_no_docstring) {
 (<any>Tooltip).last_token_re = /[a-z_][0-9a-z._]*$/gi;
 
 Tooltip.prototype._request_tooltip = function (cell, text, cursor_pos) {
-    var callbacks = $.proxy(this._show, this);
-    var msg_id = cell.kernel.inspect(text, cursor_pos, callbacks);
-};
+    var request = { code: text, 
+                     cursor_pos: cursor_pos,
+                     detail_level: 0};
+    cell.kernel.inspect(request).then(contents => {
+        this._show(contents);
+    });
+}
 
 // make an immediate completion request
 Tooltip.prototype.request = function (cell, hide_if_no_docstring) {
@@ -262,7 +256,7 @@ Tooltip.prototype._show = function (reply) {
      * otherwise fade it
      */
     this._reply = reply;
-    var content = reply.content;
+    var content = reply;
     if (!content.found) {
         // object not found, nothing to show
         return;
