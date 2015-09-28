@@ -323,11 +323,10 @@ class FileBrowser extends Widget {
     var inode = document.createElement('i');
     inode.className = 'item_icon';
     inode.style.display = 'inline-block'
+    inode.classList.add('icon-fixed-width');
     var lnode = document.createElement('div');
     lnode.className = 'item_link';
-    lnode.classList.add('row');
-    inode.classList.add('icon-fixed-width');
-    lnode.style.display = 'inline-block';
+    lnode.classList.add('fileItem');
     lnode.textContent = text;
     if (isDirectory) {
       inode.classList.add('folder_icon');
