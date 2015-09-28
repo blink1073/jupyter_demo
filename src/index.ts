@@ -233,7 +233,9 @@ class DirectoryListing extends Widget {
     this.addClass('content');
     this._contents = new Contents(baseUrl);
     document.addEventListener('mousedown', this, true);
+    this._currentDir = '';
     this._contents.listContents('.').then((msg) => {
+      console.log('msg', msg);
       for (var i = 0; i < msg.content.length; i++ ) {
         var node = document.createElement('li');
         node.innerText = (<any>msg).content[i].path;
@@ -268,26 +270,51 @@ class DirectoryListing extends Widget {
       var el = event.target as HTMLElement;
       var text = el.innerText;
       if (text[text.length - 1] == '/') {
-        while (this.node.firstChild.hasChildNodes()) {
-           this.node.firstChild.removeChild(this.node.firstChild.lastChild);
-        }
-        this._contents.listContents(text.slice(0, text.length - 1)).then((msg) => {
-          for (var i = 0; i < msg.content.length; i++ ) {
-            var node = document.createElement('li');
-            node.innerText = (<any>msg).content[i].path;
-            if ((<any>msg).content[i].type === 'directory') {
-              node.innerText += '/';
-            }
-            this.node.firstChild.appendChild(node);
-          }
-        });
+        this._currentDir += text;
+        this._listDir();
+      } else if (text == '..') {
+         var parts = this._currentDir.split('/');
+         var parts = parts.slice(0, parts.length - 2);
+         if (parts.length === 0) {
+           this._currentDir = '';
+         } else {
+           this._currentDir = parts.join('/') + '/';
+         }
+         this._listDir();
       } else {
+        var text = (<HTMLElement>event.target).innerText
         var onClick = this._onClick;
-        if (onClick) onClick((<HTMLElement>event.target).innerText);
+        if (onClick) onClick(this._currentDir + text);
       }
     }
   }
 
+  _listDir() {
+
+    while (this.node.firstChild.hasChildNodes()) {
+       this.node.firstChild.removeChild(this.node.firstChild.lastChild);
+    }
+
+    if (this._currentDir.lastIndexOf('/') !== -1) {
+      var node = document.createElement('li');
+      node.innerText = '..';
+      this.node.firstChild.appendChild(node);
+    }
+
+    var path = this._currentDir.slice(0, this._currentDir.length - 1);
+    this._contents.listContents(path).then((msg) => {
+      for (var i = 0; i < msg.content.length; i++ ) {
+        var node = document.createElement('li');
+        node.innerText = (<any>msg).content[i].name;
+        if ((<any>msg).content[i].type === 'directory') {
+          node.innerText += '/';
+        }
+        this.node.firstChild.appendChild(node);
+      }
+    });
+  }
+
+  private _currentDir = '';
   private _onClick = null;
   private _contents: Contents = null;
 }
