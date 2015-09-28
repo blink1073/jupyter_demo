@@ -29,6 +29,8 @@ def main(argv):
         (r"/", TerminalPageHandler),
         (r'/(.*)', tornado.web.StaticFileHandler,
          {'path': '.'}),
+        (r'/*/(.*)', tornado.web.StaticFileHandler,
+         {'path': '.'}),
     ]
     app = tornado.web.Application(handlers, static_path='build',
                                   template_path='.')
