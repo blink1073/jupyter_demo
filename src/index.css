@@ -27,7 +27,9 @@ body {
 
 
 .fileItem {
-
+  color: #0000EE;
+  display: inline-block;
+  font: 14px Helvetica, Arial, sans-serif;
 }
 
 .content {

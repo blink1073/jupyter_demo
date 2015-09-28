@@ -203,6 +203,11 @@ class CodeMirrorWidget extends Widget {
     return this._editor;
   }
 
+  set fontSize(size: string) {
+    this._editor.getWrapperElement().style["font-size"] = size;
+    this._editor.refresh();
+  }
+
   loadFile(name: string, contents: string): void {
     var doc = this._editor.getDoc();
     if (name.indexOf('.py') !== -1) {
@@ -291,8 +296,8 @@ class FileBrowser extends Widget {
          }
          this.listDir();
       } else {
-        var text = (<HTMLElement>event.target).textContent;
-        this._contents.get(text, { type: "file" }).then(msg => {
+        var path = this._currentDir + (<HTMLElement>event.target).textContent;
+        this._contents.get(path, { type: "file" }).then(msg => {
           var onClick = this._onClick;
           if (onClick) onClick(msg.path, msg.content);
         });
@@ -331,11 +336,10 @@ class FileBrowser extends Widget {
     var inode = document.createElement('i');
     inode.className = 'item_icon';
     inode.style.display = 'inline-block'
+    inode.classList.add('icon-fixed-width');
     var lnode = document.createElement('div');
     lnode.className = 'item_link';
-    lnode.classList.add('row');
-    inode.classList.add('icon-fixed-width');
-    lnode.style.display = 'inline-block';
+    lnode.classList.add('fileItem');
     lnode.textContent = text;
     if (isDirectory) {
       inode.classList.add('folder_icon');
@@ -542,7 +546,8 @@ function main(): void {
     lineNumbers: true,
     tabSize: 2,
   });
-  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)');
+  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+  cm.fontSize = '10pt';
   var cmTab = new Tab('Editor');
   cmTab.closable = true;
   DockPanel.setTab(cm, cmTab);
@@ -570,17 +575,18 @@ function main(): void {
   panel.addWidget(notebook);
 
   // directory listing tab
-  var listing = new FileBrowser('http://localhost:8888', '.');
+  var listing = new FileBrowser('http://localhost:8888', '');
   var listingTab = new Tab('File Browser');
   listingTab.closable = true;
   DockPanel.setTab(listing, listingTab);
   listing.listDir();
-
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
   }
   panel.addWidget(listing)
  
+  var panel = new DockPanel();
+  panel.id = 'main';
   panel.addWidget(cm);
   panel.addWidget(term, DockPanel.SplitBottom, cm);
   panel.addWidget(listing, DockPanel.SplitLeft, term);
