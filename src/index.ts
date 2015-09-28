@@ -195,6 +195,7 @@ class TerminalWidget extends Widget {
   private _config: ITerminalConfig;
 }
 
+
 /**
  * A widget which hosts a CodeMirror editor.
  */
@@ -247,6 +248,9 @@ class CodeMirrorWidget extends Widget {
 }
 
 
+/**
+ * A widget which hosts a File browser.
+ */
 class FileBrowser extends Widget {
 
   static createNode(): HTMLElement {
@@ -354,6 +358,9 @@ class FileBrowser extends Widget {
 }
 
 
+/**
+ * A widget which hosts a Notebook.
+ */
 class Notebook extends Widget {
 
   static createNode(): HTMLElement {
