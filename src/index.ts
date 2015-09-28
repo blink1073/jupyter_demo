@@ -143,12 +143,8 @@ constructor(ws_url: string, config?: ITerminalConfig) {
     }
 
     this._config = options;
-    // this.resize_term(this.width, this.height);
   }
 
-  /**
-   * Handle resizing the terminal itself.
-   */
   protected resize_term(width: number, height: number): void {
     if (!this._term_row_height) {
       this._term_row_height = this._dummy_term.offsetHeight / 25;
@@ -165,9 +161,6 @@ constructor(ws_url: string, config?: ITerminalConfig) {
     this._term.resize(cols, rows);
   }
 
-  /**
-   * Handle resize event.
-   */
   protected onResize(msg: ResizeMessage): void {
     this.resize_term(msg.width, msg.height);
   }
@@ -258,16 +251,6 @@ class FileBrowser extends Widget {
     this._onClick = cb;
   }
 
-  /**
-   * Handle the DOM events for the dock panel.
-   *
-   * @param event - The DOM event sent to the dock panel.
-   *
-   * #### Notes
-   * This method implements the DOM `EventListener` interface and is
-   * called in response to events on the dock panel's DOM node. It
-   * should not be called directly by user code.
-   */
   handleEvent(event: Event): void {
     if (!this.node.contains((<any>event).target)) {
       return;
@@ -298,25 +281,23 @@ class FileBrowser extends Widget {
   }
 
   listDir() {
-
     while (this.node.firstChild.hasChildNodes()) {
        this.node.firstChild.removeChild(this.node.firstChild.lastChild);
     }
-
     if (this._currentDir.lastIndexOf('/') !== -1) {
       this._addItem('..', true);
-    }
-
-    var path = this._currentDir.slice(0, this._currentDir.length - 1);
-    this._contents.listContents(path).then((msg) => {
-      for (var i = 0; i < msg.content.length; i++ ) {
-        if ((<any>msg).content[i].type === 'directory') {
-          this._addItem((<any>msg).content[i].name + '/', true);
-        } else {
-          this._addItem((<any>msg).content[i].name, false);
+    } else {
+      var path = this._currentDir.slice(0, this._currentDir.length - 1);
+      this._contents.listContents(path).then((msg) => {
+        for (var i = 0; i < msg.content.length; i++ ) {
+          if ((<any>msg).content[i].type === 'directory') {
+            this._addItem((<any>msg).content[i].name + '/', true);
+          } else {
+            this._addItem((<any>msg).content[i].name, false);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   private _addItem(text: string, isDirectory: boolean) {
@@ -446,7 +427,7 @@ function main(): void {
   var termTab = new Tab('Terminal');
   DockPanel.setTab(term, termTab);
 
-  // notebook tab
+  // Notebook tab
   var kernelOptions = {
     baseUrl: `http://${address}`,
     wsUrl: `ws://${address}`,
@@ -457,7 +438,7 @@ function main(): void {
   var notebookTab = new Tab('Notebook');
   DockPanel.setTab(notebook, notebookTab);
 
-  // directory listing tab
+  // File Browser tab
   var listing = new FileBrowser(`http://${address}`, '');
   listing.listDir();
   listing.onClick = (path, contents) => {
