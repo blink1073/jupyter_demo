@@ -546,6 +546,254 @@ function createMenuBar(panel: MainPanel): MenuBar {
               handler: panel.newFileBrowser.bind(panel)
             }
           ]
+        },
+        {
+          text: 'Open...',
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Make a Copy...'
+        },
+        {
+          text: 'Rename...'
+        },
+        {
+          text: 'Save and Checkpoint'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Revert to Checkpoint',
+          submenu: [
+            {
+              text: 'Monday September 28th 09:44'
+            }
+          ]
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Print Preview'
+        },
+        {
+          text: 'Download as',
+          submenu: [
+            {
+              text: 'IPython Notebook (.ipynb)'
+            },
+            {
+              text: 'Python (.py)'
+            },
+            {
+              text: 'HTML (.html)'
+            },
+            {
+              text: 'Markdown (.md)'
+            },
+            {
+              text: 'reST (.rst)'
+            },
+            {
+              text: 'PDF via LaTeX (.pdf)'
+            }
+          ]
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Trusted Notebook'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Close and Halt'
+        }
+      ]
+    },
+    {
+      text: 'Edit',
+      submenu: [
+        {
+          text: 'Cut Cell'
+        },
+        {
+          text: 'Copy Cell'
+        },
+        {
+          text: 'Paste Cell Above'
+        },
+        {
+          text: 'Paste Cell Below'
+        },
+        {
+          text: 'Paste Cell and Replace'
+        },
+        {
+          text: 'Delete Cell'
+        },
+        {
+          text: 'Undo Delete Cell'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Split Cell'
+        },
+        {
+          text: 'Merge Cell Above'
+        },
+        {
+          text: 'Merge Cell Below'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Move Cell Up'
+        },
+        {
+          text: 'Move Cell Down'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Edit Notebook Metadata'
+        }
+      ]
+    },
+    {
+      text: 'View',
+      submenu: [
+        {
+          text: 'Toggle Header'
+        },
+        {
+          text: 'Toggle Toolbar'
+        }
+      ]
+    },
+    {
+      text: 'Insert',
+      submenu: [
+        {
+          text: 'Insert Cell Above'
+        },
+        {
+          text: 'Insert Cell Below'
+        }
+      ]
+    },
+    {
+      text: 'Cell',
+      submenu: [
+        {
+          text: 'Run'
+        },
+        {
+          text: 'Run and Select Below'
+        },
+        {
+          text: 'Run and Insert Below'
+        },
+        {
+          text: 'Run All'
+        },
+        {
+          text: 'Run All Above'
+        },
+        {
+          text: 'Run All Below'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Cell Type',
+          submenu: [
+            {
+              text: 'Code'
+            },
+            {
+              text: 'Markdown'
+            },
+            {
+              text: 'Raw NB Convert'
+            }
+          ]
+        },
+      ]
+    },
+    {
+      text: 'Kernel',
+      submenu: [
+        {
+          text: 'Interrupt'
+        },
+        {
+          text: 'Restart'
+        },
+        {
+          text: 'Reconnect'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Change kernel',
+          submenu: [
+            {
+              text: 'Python 3'
+            }
+          ]
+        }
+      ]
+    },
+    {
+      text: 'Help',
+      submenu: [
+        {
+          text: 'User Interface Tour'
+        },
+        {
+          text: 'Keyboard Shortcuts'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'Python'
+        },
+        {
+          text: 'IPython'
+        },
+        {
+          text: 'NumPy'
+        },
+        {
+          text: 'SciPy'
+        },
+        {
+          text: 'Matplotlib'
+        },
+        {
+          text: 'SymPy'
+        },
+        {
+          text: 'pandas'
+        },
+        {
+          type: 'separator'
+        },
+        {
+          text: 'About'
         }
       ]
     }
