@@ -231,20 +231,65 @@ class DirectoryListing extends Widget {
   constructor(baseUrl) {
     super();
     this.addClass('content');
-    var contents = new Contents(baseUrl);
-    contents.listContents('.').then((msg) => {
-      console.log('MSG', msg);
+    this._contents = new Contents(baseUrl);
+    document.addEventListener('mousedown', this, true);
+    this._contents.listContents('.').then((msg) => {
       for (var i = 0; i < msg.content.length; i++ ) {
         var node = document.createElement('li');
-        node.innerHTML += (<any>msg).content[i].path;
+        node.innerText = (<any>msg).content[i].path;
         if ((<any>msg).content[i].type === 'directory') {
-          node.innerHTML += '/';
+          node.innerText += '/';
         }
         this.node.firstChild.appendChild(node);
       }
     });
   }
 
+  get onClick(): (string) => void {
+    return this._onClick;
+  }
+
+  set onClick(cb: (string) => void) {
+    this._onClick = cb;
+  }
+
+  /**
+   * Handle the DOM events for the dock panel.
+   *
+   * @param event - The DOM event sent to the dock panel.
+   *
+   * #### Notes
+   * This method implements the DOM `EventListener` interface and is
+   * called in response to events on the dock panel's DOM node. It
+   * should not be called directly by user code.
+   */
+  handleEvent(event: Event): void {
+    if (event.type === 'mousedown') {
+      var el = event.target as HTMLElement;
+      var text = el.innerText;
+      if (text[text.length - 1] == '/') {
+        while (this.node.firstChild.hasChildNodes()) {
+           this.node.firstChild.removeChild(this.node.firstChild.lastChild);
+        }
+        this._contents.listContents(text.slice(0, text.length - 1)).then((msg) => {
+          for (var i = 0; i < msg.content.length; i++ ) {
+            var node = document.createElement('li');
+            node.innerText = (<any>msg).content[i].path;
+            if ((<any>msg).content[i].type === 'directory') {
+              node.innerText += '/';
+            }
+            this.node.firstChild.appendChild(node);
+          }
+        });
+      } else {
+        var onClick = this._onClick;
+        if (onClick) onClick((<HTMLElement>event.target).innerText);
+      }
+    }
+  }
+
+  private _onClick = null;
+  private _contents: Contents = null;
 }
 
 
@@ -343,7 +388,7 @@ function main(): void {
   // Codemirror tab
   //
   var cm = new CodeMirrorWidget({
-    mode: 'python',
+    mode: 'text',
     lineNumbers: true,
     tabSize: 2,
   });
@@ -376,6 +421,10 @@ function main(): void {
   var listing = new DirectoryListing('http://localhost:8888');
   var listingTab = new Tab('Directory Listing');
   DockPanel.setTab(listing, listingTab);
+
+  listing.onClick = (path) => {
+    cm.loadTarget(path);
+  }
  
   panel.addWidget(cm);
   panel.addWidget(term, DockPanel.SplitBottom, cm);
