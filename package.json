@@ -5,7 +5,7 @@
     "build:css": "node scripts/copycss.js",
     "build:browser": "browserify -t browserify-css build/index.js -o build/bundle.js",
     "build": "npm run build:src && npm run build:css && npm run build:browser",
-    "postinstall": "npm dedupe && cd src/jupyter-js-services && npm install"
+    "postinstall": "npm dedupe && cd jupyter-js-services && npm install"
   },
  "dependencies": {
     "phosphor-arrays": "^1.0.3",
