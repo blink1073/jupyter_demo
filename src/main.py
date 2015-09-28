@@ -66,6 +66,7 @@ def main(argv):
     except KeyboardInterrupt:
         print(" Shutting down on SIGINT")
     finally:
+        nb_server.kill()
         term_manager.shutdown()
         loop.close()
 
