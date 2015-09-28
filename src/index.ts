@@ -28,7 +28,7 @@ import {
 } from 'phosphor-splitpanel';
 
 import {
-  Tab
+  Tab, TabPanel
 } from 'phosphor-tabs';
 
 import {
@@ -817,15 +817,28 @@ function main(): void {
     keymap.processKeydownEvent(event);
   });
 
+  var running = new Widget();
+  var runTab = new Tab('Running');
+  runTab.closable = true;
+
+  TabPanel.setTab(listing, new Tab('Files'));
+  TabPanel.setTab(running, runTab);
+
+  var leftPanel = new TabPanel();
+  leftPanel.id = 'left';
+
+  leftPanel.widgets = [listing, running];
+
   var panel = new SplitPanel();
   panel.id = 'main';
 
-  panel.children = [listing, dock];
+  panel.children = [leftPanel, dock];
   panel.setSizes([1, 3]);
 
   dock.newEditor();
   dock.newTerminal(DockMode.SplitBottom, dock.children[0]);
   dock.newNotebook(DockMode.SplitLeft, dock.children[1]);
+  dock.newNotebook(DockMode.TabAfter, dock.children[1]);
 
   var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
