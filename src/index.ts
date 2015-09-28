@@ -29,7 +29,7 @@ import {
 
 import { 
   startNewKernel, Contents
-} from './jupyter-js-services/index';
+} from '../jupyter-js-services/index';
 
 import {
   ActionHandler

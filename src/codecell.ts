@@ -9,7 +9,7 @@
  */
 "use strict";
 
-import { IKernel, KernelStatus } from './jupyter-js-services';
+import { IKernel, KernelStatus } from '../jupyter-js-services';
 
 var outputarea = require('jupyter-js-output-area');
 var utils = require('./utils');
