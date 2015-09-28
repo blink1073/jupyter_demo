@@ -266,6 +266,9 @@ class DirectoryListing extends Widget {
    * should not be called directly by user code.
    */
   handleEvent(event: Event): void {
+    if (!this.node.contains((<any>event).target)) {
+      return;
+    }
     if (event.type === 'mousedown') {
       var el = event.target as HTMLElement;
       var text = el.innerText;
