@@ -3,6 +3,9 @@ Copyright (c) 2015 Phosphor Contributors
 Distributed under the terms of the BSD 3-Clause License.
 The full license is in the file LICENSE, distributed with this software.
 """
+import subprocess
+import sys
+
 import webbrowser
 import tornado.web
 
@@ -32,6 +35,25 @@ def main(argv):
         (r'/*/(.*)', tornado.web.StaticFileHandler,
          {'path': '.'}),
     ]
+
+    nb_command = [sys.executable, '-m', 'notebook', '--no-browser',
+                  '--NotebookApp.allow_origin="*"']
+    nb_server = subprocess.Popen(nb_command, stderr=subprocess.STDOUT,
+                                 stdout=subprocess.PIPE)
+
+    # wait for notebook server to start up
+    while 1:
+        line = nb_server.stdout.readline().decode('utf-8').strip()
+        if not line:
+            continue
+        print(line)
+        if 'The IPython Notebook is running at: http://localhost:8888/':
+            break
+        if 'Control-C' in line:
+            raise ValueError(
+                'The port 8888 was already taken, kill running notebook servers'
+            )
+
     app = tornado.web.Application(handlers, static_path='build',
                                   template_path='.')
 
@@ -48,5 +70,4 @@ def main(argv):
         loop.close()
 
 if __name__ == '__main__':
-    import sys
     main(sys.argv)

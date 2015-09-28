@@ -3,11 +3,8 @@ To install:
 
 npm install 
 npm run build
+pip install terminado
 
-Run the notebook server:
-
-python -m notebook --no-browser --NotebookApp.allow_origin="*"
-
-Run a separate local server for the demo:
+To run the demo:
 
 python src/main.py
