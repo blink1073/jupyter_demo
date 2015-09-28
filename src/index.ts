@@ -195,25 +195,20 @@ class CodeMirrorWidget extends Widget {
     return this._editor;
   }
 
-  loadTarget(target: string): void {
+  loadFile(name: string, contents: string): void {
     var doc = this._editor.getDoc();
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', target);
-    xhr.onreadystatechange = () => {
-      doc.setValue(xhr.responseText);
-      if (target.indexOf('.py') !== -1) {
-        this._editor.setOption('mode', 'python');
-      } else if (target.indexOf('.ts') !== -1) {
-        this._editor.setOption('mode', 'text/typescript');
-      } else if (target.indexOf('.js') !== -1) {
-        this._editor.setOption('mode', 'text/javascript');
-      } else if (target.indexOf('.css') !== -1) {
-        this._editor.setOption('mode', 'text/css');
-      } else {
-        this._editor.setOption('mode', 'text');
-      }
+    if (name.indexOf('.py') !== -1) {
+      this._editor.setOption('mode', 'python');
+    } else if (name.indexOf('.ts') !== -1) {
+      this._editor.setOption('mode', 'text/typescript');
+    } else if (name.indexOf('.js') !== -1) {
+      this._editor.setOption('mode', 'text/javascript');
+    } else if (name.indexOf('.css') !== -1) {
+      this._editor.setOption('mode', 'text/css');
+    } else {
+      this._editor.setOption('mode', 'text');
     }
-    xhr.send();
+    doc.setValue(contents);
   }
 
   protected onAfterAttach(msg: Message): void {
@@ -232,7 +227,7 @@ class CodeMirrorWidget extends Widget {
 }
 
 
-class DirectoryListing extends Widget {
+class FileBrowser extends Widget {
 
   static createNode(): HTMLElement {
     var node = document.createElement('div');
@@ -260,11 +255,11 @@ class DirectoryListing extends Widget {
     });
   }
 
-  get onClick(): (string) => void {
+  get onClick(): (name: string, contents: string) => void {
     return this._onClick;
   }
 
-  set onClick(cb: (string) => void) {
+  set onClick(cb: (name: string, contents: string) => void) {
     this._onClick = cb;
   }
 
@@ -298,9 +293,11 @@ class DirectoryListing extends Widget {
          }
          this._listDir();
       } else {
-        var text = (<HTMLElement>event.target).innerText
-        var onClick = this._onClick;
-        if (onClick) onClick(this._currentDir + text);
+        var text = (<HTMLElement>event.target).innerText;
+        this._contents.get(text, { type: "file" }).then(msg => {
+          var onClick = this._onClick;
+          if (onClick) onClick(msg.path, msg.content);
+        });
       }
     }
   }
@@ -331,7 +328,7 @@ class DirectoryListing extends Widget {
   }
 
   private _currentDir = '';
-  private _onClick = null;
+  private _onClick: (name: string, contents: string) => void = null;
   private _contents: Contents = null;
 }
 
@@ -461,12 +458,12 @@ function main(): void {
   DockPanel.setTab(notebook, notebookTab);
 
   // directory listing tab
-  var listing = new DirectoryListing('http://localhost:8888');
+  var listing = new FileBrowser('http://localhost:8888');
   var listingTab = new Tab('Directory Listing');
   DockPanel.setTab(listing, listingTab);
 
-  listing.onClick = (path) => {
-    cm.loadTarget(path);
+  listing.onClick = (path, contents) => {
+    cm.loadFile(path, contents);
   }
  
   panel.addWidget(cm);
