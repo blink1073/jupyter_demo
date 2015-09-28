@@ -451,7 +451,7 @@ function main(): void {
     tabSize: 2,
   });
   cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
-  cm.fontSize = '11pt';
+  cm.fontSize = '10pt';
   var cmTab = new Tab('Editor');
   DockPanel.setTab(cm, cmTab);
 
