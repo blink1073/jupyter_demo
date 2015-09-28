@@ -199,7 +199,20 @@ class CodeMirrorWidget extends Widget {
     var doc = this._editor.getDoc();
     var xhr = new XMLHttpRequest();
     xhr.open('GET', target);
-    xhr.onreadystatechange = () => doc.setValue(xhr.responseText);
+    xhr.onreadystatechange = () => {
+      doc.setValue(xhr.responseText);
+      if (target.indexOf('.py') !== -1) {
+        this._editor.setOption('mode', 'python');
+      } else if (target.indexOf('.ts') !== -1) {
+        this._editor.setOption('mode', 'text/typescript');
+      } else if (target.indexOf('.js') !== -1) {
+        this._editor.setOption('mode', 'text/javascript');
+      } else if (target.indexOf('.css') !== -1) {
+        this._editor.setOption('mode', 'text/css');
+      } else {
+        this._editor.setOption('mode', 'text');
+      }
+    }
     xhr.send();
   }
 
@@ -418,7 +431,7 @@ function main(): void {
   // Codemirror tab
   //
   var cm = new CodeMirrorWidget({
-    mode: 'text',
+    mode: 'python',
     lineNumbers: true,
     tabSize: 2,
   });
