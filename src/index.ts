@@ -69,33 +69,43 @@ import './index.css';
  */
 export
 class TerminalWidget extends Widget {
-/*
-* Construct a new terminal.
-*/
-constructor(ws_url: string, config?: ITerminalConfig) {
-  super();
-  this.addClass('TerminalWidget');
-  this._ws = new WebSocket(ws_url);
-  this._config = config || { useStyle: true };
 
-  this._term = new Terminal(this._config);
-  this._term.open(this.node);
+  static nterms = 0;
 
-  this._term.on('data', (data: string) => {
-    this._ws.send(JSON.stringify(['stdin', data]));
-  });
+  static createTerminal(config?: ITerminalConfig) : TerminalWidget{
+    TerminalWidget.nterms += 1;
+    var wsUrl = `ws://${ADDRESS}/terminals/websocket/${TerminalWidget.nterms}`;
+    var term = new TerminalWidget(wsUrl, config);
+    return term;
+  }
 
-  this._ws.onmessage = (event: MessageEvent) => {
-    var json_msg = JSON.parse(event.data);
-    switch (json_msg[0]) {
-      case "stdout":
-        this._term.write(json_msg[1]);
-        break;
-      case "disconnect":
-        this._term.write("\r\n\r\n[Finished... Term Session]\r\n");
-        break;
-      }
-    };
+  /*
+   * Construct a new terminal.
+   */
+  constructor(ws_url: string, config?: ITerminalConfig) {
+    super();
+    this.addClass('TerminalWidget');
+    this._ws = new WebSocket(ws_url);
+    this._config = config || { useStyle: true };
+
+    this._term = new Terminal(this._config);
+    this._term.open(this.node);
+
+    this._term.on('data', (data: string) => {
+      this._ws.send(JSON.stringify(['stdin', data]));
+    });
+
+    this._ws.onmessage = (event: MessageEvent) => {
+      var json_msg = JSON.parse(event.data);
+      switch (json_msg[0]) {
+        case "stdout":
+          this._term.write(json_msg[1]);
+          break;
+        case "disconnect":
+          this._term.write("\r\n\r\n[Finished... Term Session]\r\n");
+          break;
+        }
+      };
 
     // create a dummy terminal to get row/column size
     this._dummy_term = document.createElement('div');
@@ -416,8 +426,7 @@ class Notebook extends Widget {
 }
 
 
-var ADDRESS = 'localhost:8888'
-var nterms = 0;
+var ADDRESS = 'localhost:8888';
 
 
 function newNotebook(): Notebook {
@@ -444,14 +453,6 @@ function newEditor(listing?: FileBrowser): CodeMirrorWidget {
     listing.onClick = (path, contents) => cm.loadFile(path, contents);
   }
   return cm;
-}
-
-
-function newTerminal(): TerminalWidget {
-  nterms += 1;
-  var wsUrl = `ws://${ADDRESS}/terminals/websocket/${nterms}`;
-  var term = new TerminalWidget(wsUrl);
-  return term;
 }
 
 
@@ -488,8 +489,8 @@ class MainPanel extends DockPanel {
   }
 
   newTerminal(mode?: DockMode, ref?: Widget): boolean {
-    var term = newTerminal();
-    var tab = new Tab(`Terminal ${nterms}`);
+    var term = TerminalWidget.createTerminal();
+    var tab = new Tab(`Terminal ${TerminalWidget.nterms}`);
     tab.closable = true;
     DockPanel.setTab(term, tab);
     this.addWidget(term, mode, ref);
