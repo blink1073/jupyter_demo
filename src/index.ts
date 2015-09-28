@@ -195,6 +195,11 @@ class CodeMirrorWidget extends Widget {
     return this._editor;
   }
 
+  set fontSize(size: string) {
+    this._editor.getWrapperElement().style["font-size"] = size;
+    this._editor.refresh();
+  }
+
   loadFile(name: string, contents: string): void {
     var doc = this._editor.getDoc();
     if (name.indexOf('.py') !== -1) {
@@ -445,7 +450,8 @@ function main(): void {
     lineNumbers: true,
     tabSize: 2,
   });
-  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)'); 
+  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+  cm.fontSize = '11pt';
   var cmTab = new Tab('Editor');
   DockPanel.setTab(cm, cmTab);
 
@@ -455,9 +461,6 @@ function main(): void {
   var term = new TerminalWidget(wsUrl);
   var termTab = new Tab('Terminal');
   DockPanel.setTab(term, termTab);
-
-  var panel = new DockPanel();
-  panel.id = 'main';
 
   // notebook tab
   var kernelOptions = {
@@ -472,13 +475,14 @@ function main(): void {
   // directory listing tab
   var listing = new FileBrowser('http://localhost:8888', '');
   var listingTab = new Tab('File Browser');
-  DockPanel.setTab(listing, listingTab);
   listing.listDir();
-
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
   }
+  DockPanel.setTab(listing, listingTab);
  
+  var panel = new DockPanel();
+  panel.id = 'main';
   panel.addWidget(cm);
   panel.addWidget(term, DockPanel.SplitBottom, cm);
   panel.addWidget(listing, DockPanel.SplitLeft, term);
