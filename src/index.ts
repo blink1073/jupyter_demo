@@ -24,6 +24,10 @@ import {
 } from 'phosphor-messaging';
 
 import {
+  SplitPanel
+} from 'phosphor-splitpanel';
+
+import {
   Tab
 } from 'phosphor-tabs';
 
@@ -266,6 +270,7 @@ class FileBrowser extends Widget {
     if (event.type === 'mousedown') {
       var el = event.target as HTMLElement;
       var text = el.textContent;
+      console.log('text', text);
       if (text[text.length - 1] == '/') {
         this._currentDir += text;
         this.listDir();
@@ -294,18 +299,17 @@ class FileBrowser extends Widget {
     }
     if (this._currentDir.lastIndexOf('/') !== -1) {
       this._addItem('..', true);
-    } else {
-      var path = this._currentDir.slice(0, this._currentDir.length - 1);
-      this._contents.listContents(path).then((msg) => {
-        for (var i = 0; i < msg.content.length; i++ ) {
-          if ((<any>msg).content[i].type === 'directory') {
-            this._addItem((<any>msg).content[i].name + '/', true);
-          } else {
-            this._addItem((<any>msg).content[i].name, false);
-          }
-        }
-      });
     }
+    var path = this._currentDir.slice(0, this._currentDir.length - 1);
+    this._contents.listContents(path).then((msg) => {
+      for (var i = 0; i < msg.content.length; i++ ) {
+        if ((<any>msg).content[i].type === 'directory') {
+          this._addItem((<any>msg).content[i].name + '/', true);
+        } else {
+          this._addItem((<any>msg).content[i].name, false);
+        }
+      }
+    });
   }
 
   private _addItem(text: string, isDirectory: boolean) {
@@ -412,119 +416,96 @@ class Notebook extends Widget {
 }
 
 
+var ADDRESS = 'localhost:8888'
+var nterms = 0;
+
+
+function newNotebook(): Notebook {
+  var kernelOptions = {
+    baseUrl: `http://${ADDRESS}`,
+    wsUrl: `ws://${ADDRESS}`,
+    name: 'python'
+  }
+  var notebook = new Notebook();
+  notebook.start(kernelOptions);
+  return notebook;
+}
+
+
+function newEditor(listing?: FileBrowser): CodeMirrorWidget {
+  var cm = new CodeMirrorWidget({
+    mode: 'python',
+    lineNumbers: true,
+    tabSize: 2,
+  });
+  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+  cm.fontSize = '10pt';
+  if (listing !== void 0) {
+    listing.onClick = (path, contents) => cm.loadFile(path, contents);
+  }
+  return cm;
+}
+
+
+function newTerminal(): TerminalWidget {
+  nterms += 1;
+  var wsUrl = `ws://${ADDRESS}/terminals/websocket/${nterms}`;
+  var term = new TerminalWidget(wsUrl);
+  return term;
+}
+
+
+function newFileBrowser(dirname?: string): FileBrowser {
+  var listing = new FileBrowser(`http://${ADDRESS}`, dirname || '');
+  listing.listDir();
+  return listing;
+}
+
+
 class MainPanel extends DockPanel {
 
-  constructor(address: string) {
-    super();
-    this.id = 'main';
-    this._address = address;
-    var keymap = new KeymapManager();
-    keymap.add('*', [
-      { sequence: 'Ctrl+N', handler: this.newNotebook.bind(this) },
-      { sequence: 'Ctrl+E', handler: this.newEditor.bind(this) },
-      { sequence: 'Ctrl+T', handler: this.newTerminal.bind(this) },
-      { sequence: 'Ctrl+F', handler: this.newFileBrowser.bind(this) }
-    ]);
-
-    document.addEventListener('keydown', event => {
-      keymap.processKeydownEvent(event);
-    });
+  constructor(listing: FileBrowser) { 
+    super(); 
+    this._listing = listing;
   }
 
-  initialize() {
-    var editor = this._createEditor();
-    var term = this._createTerminal(DockPanel.SplitBottom, editor);
-    this._createFileBrowser(DockPanel.SplitLeft, term);
-    this._createNotebook(DockPanel.SplitLeft, editor);
-  }
-
-  newNotebook(): boolean {
-    this._createNotebook();
-    return true;
-  }
-
-  newEditor(): boolean {
-    this._createEditor();
-    return true;
-  }
-
-  newTerminal(): boolean {
-    this._createTerminal();
-    return true;
-  }
-
-  newFileBrowser(): boolean {
-    this._createFileBrowser();
-    return true;
-  }
-
-  _createNotebook(mode?: DockMode, ref?: Widget): Notebook {
-    var kernelOptions = {
-      baseUrl: `http://${this._address}`,
-      wsUrl: `ws://${this._address}`,
-      name: 'python'
-    }
-    var notebook = new Notebook();
-    notebook.start(kernelOptions);
+  newNotebook(mode?: DockMode, ref?: Widget): boolean {
+    var notebook = newNotebook();
     var tab = new Tab('Notebook');
     tab.closable = true;
     DockPanel.setTab(notebook, tab);
     this.addWidget(notebook, mode, ref);
-    return notebook;
+    return true;
   }
 
-  _createEditor(mode?: DockMode, ref?: Widget): CodeMirrorWidget {
-    var cm = new CodeMirrorWidget({
-      mode: 'python',
-      lineNumbers: true,
-      tabSize: 2,
-    });
-    cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
-    cm.fontSize = '10pt';
+  newEditor(mode?: DockMode, ref?: Widget): boolean {
+    var editor = newEditor(this._listing);
     var tab = new Tab('Code Editor');
     tab.closable = true;
-    DockPanel.setTab(cm, tab);
-    this.addWidget(cm, mode, ref);
-
-    this._editors.push(cm);
-    cm.disposed.connect((widget) => {
-      var index = this._editors.indexOf(widget);
-      if (index !== -1) {
-        this._editors.splice(index, 1);
-      }
-    });
-    return cm;
+    DockPanel.setTab(editor, tab);
+    this.addWidget(editor, mode, ref);
+    return true;
   }
 
-  _createTerminal(mode?: DockMode, ref?: Widget): TerminalWidget {
-    this._nterms += 1;
-    var wsUrl = `ws://${this._address}/terminals/websocket/${this._nterms}`;
-    var term = new TerminalWidget(wsUrl);
-    var tab = new Tab(`Terminal ${this._nterms}`);
+  newTerminal(mode?: DockMode, ref?: Widget): boolean {
+    var term = newTerminal();
+    var tab = new Tab(`Terminal ${nterms}`);
     tab.closable = true;
     DockPanel.setTab(term, tab);
     this.addWidget(term, mode, ref);
-    return term;
+    return true;
   }
 
-  _createFileBrowser(mode?: DockMode, ref?: Widget): FileBrowser {
-    var listing = new FileBrowser(`http://${this._address}`, '');
-    listing.listDir();
+  newFileBrowser(mode?: DockMode, ref?: Widget): boolean {
+    var listing = newFileBrowser();
     var tab = new Tab('File Browser');
     tab.closable = true;
     DockPanel.setTab(listing, tab);
     this.addWidget(listing, mode, ref);
-    listing.onClick = (path, contents) => {
-      if (this._editors.length) {
-        this._editors[this._editors.length - 1].loadFile(path, contents);
-      }
-    }
-    return listing;
+    return true;
   }
 
-  private _address = '';
-  private _nterms = 0;
-  private _editors = [];
+  private _listing: FileBrowser = null;
 }
 
 
@@ -565,11 +546,32 @@ function createMenuBar(panel: MainPanel): MenuBar {
 
 
 function main(): void {
+  
+  var listing = newFileBrowser();
+  var dock = new MainPanel(listing);
+  var keymap = new KeymapManager();
+  keymap.add('*', [
+    { sequence: 'Ctrl+N', handler: dock.newNotebook.bind(dock) },
+    { sequence: 'Ctrl+E', handler: dock.newEditor.bind(dock) },
+    { sequence: 'Ctrl+T', handler: dock.newTerminal.bind(dock) },
+    { sequence: 'Ctrl+F', handler: dock.newTerminal.bind(dock) },
+  ]);
 
-  var panel = new MainPanel('localhost:8888');
-  panel.initialize();
+  document.addEventListener('keydown', event => {
+    keymap.processKeydownEvent(event);
+  });
 
-  var menuBar = createMenuBar(panel);
+  var panel = new SplitPanel();
+  panel.id = 'main';
+
+  panel.children = [listing, dock];
+  panel.setSizes([1, 3]);
+
+  dock.newEditor();
+  dock.newTerminal(DockMode.SplitBottom, dock.children[0]);
+  dock.newNotebook(DockMode.SplitLeft, dock.children[1]);
+
+  var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
 
   attachWidget(panel, document.body);
