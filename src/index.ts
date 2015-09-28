@@ -8,8 +8,16 @@
 'use-strict';
 
 import {
-  DockPanel
+  DockPanel, DockMode
 } from '../node_modules/phosphor-dockpanel';
+
+import {
+  KeymapManager
+} from 'phosphor-keymap';
+
+import {
+  Menu, MenuBar, MenuItem
+} from 'phosphor-menus';
 
 import {
   Message
@@ -404,55 +412,165 @@ class Notebook extends Widget {
 }
 
 
+class MainPanel extends DockPanel {
+
+  constructor(address: string) {
+    super();
+    this.id = 'main';
+    this._address = address;
+    var keymap = new KeymapManager();
+    keymap.add('*', [
+      { sequence: 'Ctrl+N', handler: this.newNotebook.bind(this) },
+      { sequence: 'Ctrl+E', handler: this.newEditor.bind(this) },
+      { sequence: 'Ctrl+T', handler: this.newTerminal.bind(this) },
+      { sequence: 'Ctrl+F', handler: this.newFileBrowser.bind(this) }
+    ]);
+
+    document.addEventListener('keydown', event => {
+      keymap.processKeydownEvent(event);
+    });
+  }
+
+  initialize() {
+    var editor = this._createEditor();
+    var term = this._createTerminal(DockPanel.SplitBottom, editor);
+    this._createFileBrowser(DockPanel.SplitLeft, term);
+    this._createNotebook(DockPanel.SplitLeft, editor);
+  }
+
+  newNotebook(): boolean {
+    this._createNotebook();
+    return true;
+  }
+
+  newEditor(): boolean {
+    this._createEditor();
+    return true;
+  }
+
+  newTerminal(): boolean {
+    this._createTerminal();
+    return true;
+  }
+
+  newFileBrowser(): boolean {
+    this._createFileBrowser();
+    return true;
+  }
+
+  _createNotebook(mode?: DockMode, ref?: Widget): Notebook {
+    var kernelOptions = {
+      baseUrl: `http://${this._address}`,
+      wsUrl: `ws://${this._address}`,
+      name: 'python'
+    }
+    var notebook = new Notebook();
+    notebook.start(kernelOptions);
+    var tab = new Tab('Notebook');
+    tab.closable = true;
+    DockPanel.setTab(notebook, tab);
+    this.addWidget(notebook, mode, ref);
+    return notebook;
+  }
+
+  _createEditor(mode?: DockMode, ref?: Widget): CodeMirrorWidget {
+    var cm = new CodeMirrorWidget({
+      mode: 'python',
+      lineNumbers: true,
+      tabSize: 2,
+    });
+    cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+    cm.fontSize = '10pt';
+    var tab = new Tab('Code Editor');
+    tab.closable = true;
+    DockPanel.setTab(cm, tab);
+    this.addWidget(cm, mode, ref);
+
+    this._editors.push(cm);
+    cm.disposed.connect((widget) => {
+      var index = this._editors.indexOf(widget);
+      if (index !== -1) {
+        this._editors.splice(index, 1);
+      }
+    });
+    return cm;
+  }
+
+  _createTerminal(mode?: DockMode, ref?: Widget): TerminalWidget {
+    this._nterms += 1;
+    var wsUrl = `ws://${this._address}/terminals/websocket/${this._nterms}`;
+    var term = new TerminalWidget(wsUrl);
+    var tab = new Tab(`Terminal ${this._nterms}`);
+    tab.closable = true;
+    DockPanel.setTab(term, tab);
+    this.addWidget(term, mode, ref);
+    return term;
+  }
+
+  _createFileBrowser(mode?: DockMode, ref?: Widget): FileBrowser {
+    var listing = new FileBrowser(`http://${this._address}`, '');
+    listing.listDir();
+    var tab = new Tab('File Browser');
+    tab.closable = true;
+    DockPanel.setTab(listing, tab);
+    this.addWidget(listing, mode, ref);
+    listing.onClick = (path, contents) => {
+      if (this._editors.length) {
+        this._editors[this._editors.length - 1].loadFile(path, contents);
+      }
+    }
+    return listing;
+  }
+
+  private _address = '';
+  private _nterms = 0;
+  private _editors = [];
+}
+
+
+function createMenuBar(panel: MainPanel): MenuBar {
+  return MenuBar.fromTemplate([
+    {
+      text: 'File',
+      submenu: [
+        {
+          text: 'New',
+          submenu: [
+            {
+              text: 'Notebook',
+              shortcut: 'Ctrl+N',
+              handler: panel.newNotebook.bind(panel)
+            },
+            {
+              text: 'Code Editor',
+              shortcut: 'Ctrl+E',
+              handler: panel.newEditor.bind(panel)
+            },
+            {
+              text: 'Terminal',
+              shortcut: 'Ctrl+T',
+              handler: panel.newTerminal.bind(panel)
+            },
+            {
+              text: 'File Browser',
+              shortcut: 'Ctrl+F',
+              handler: panel.newFileBrowser.bind(panel)
+            }
+          ]
+        }
+      ]
+    }
+  ]);
+}
+
+
 function main(): void {
 
-  var address = 'localhost:8888';
+  var panel = new MainPanel('localhost:8888');
+  panel.initialize();
 
-  // Codemirror tab
-  //
-  var cm = new CodeMirrorWidget({
-    mode: 'python',
-    lineNumbers: true,
-    tabSize: 2,
-  });
-  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
-  cm.fontSize = '10pt';
-  var cmTab = new Tab('Editor');
-  DockPanel.setTab(cm, cmTab);
-
-  // Terminal tab
-  //
-  var wsUrl = `ws://${address}/terminals/websocket/1`;
-  var term = new TerminalWidget(wsUrl);
-  var termTab = new Tab('Terminal');
-  DockPanel.setTab(term, termTab);
-
-  // Notebook tab
-  var kernelOptions = {
-    baseUrl: `http://${address}`,
-    wsUrl: `ws://${address}`,
-    name: 'python'
-  }
-  var notebook = new Notebook();
-  notebook.start(kernelOptions);
-  var notebookTab = new Tab('Notebook');
-  DockPanel.setTab(notebook, notebookTab);
-
-  // File Browser tab
-  var listing = new FileBrowser(`http://${address}`, '');
-  listing.listDir();
-  listing.onClick = (path, contents) => {
-    cm.loadFile(path, contents);
-  }
-  var listingTab = new Tab('File Browser');
-  DockPanel.setTab(listing, listingTab);
- 
-  var panel = new DockPanel();
-  panel.id = 'main';
-  panel.addWidget(cm);
-  panel.addWidget(term, DockPanel.SplitBottom, cm);
-  panel.addWidget(listing, DockPanel.SplitLeft, term);
-  panel.addWidget(notebook, DockPanel.SplitLeft,cm);
+  var menuBar = createMenuBar(panel);
+  attachWidget(menuBar, document.body);
 
   attachWidget(panel, document.body);
   panel.update();
