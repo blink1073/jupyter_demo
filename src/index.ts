@@ -838,7 +838,6 @@ function main(): void {
   dock.newEditor();
   dock.newTerminal(DockMode.SplitBottom, dock.children[0]);
   dock.newNotebook(DockMode.SplitLeft, dock.children[1]);
-  dock.newNotebook(DockMode.TabAfter, dock.children[1]);
 
   var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
