@@ -13,6 +13,8 @@
     "phosphor-disposable": "^1.0.2",
     "phosphor-dockpanel": "^0.9.1",
     "phosphor-domutil": "^0.9.4",
+    "phosphor-keymap": "^0.1.0",
+    "phosphor-menus": "^0.9.4",
     "phosphor-properties": "^1.1.0",
     "phosphor-splitpanel": "^0.9.4",
     "phosphor-stackedpanel": "^0.9.4",

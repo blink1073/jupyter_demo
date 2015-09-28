@@ -12,6 +12,14 @@ import {
 } from '../node_modules/phosphor-dockpanel';
 
 import {
+  KeymapManager
+} from 'phosphor-keymap';
+
+import {
+  Menu, MenuBar, MenuItem
+} from 'phosphor-menus';
+
+import {
   Message
 } from 'phosphor-messaging';
 
@@ -436,6 +444,94 @@ class Notebook extends Widget {
   private _cells: any[] = null;
 }
 
+var panel = new DockPanel();
+panel.id = 'main';
+
+function newNotebook(): boolean {
+  var kernelOptions = {
+    baseUrl: 'http://localhost:8888',
+    wsUrl: 'ws://localhost:8888',
+    name: 'python'
+  }
+  var notebook = new Notebook(kernelOptions);
+  var notebookTab = new Tab('Notebook');
+  notebookTab.closable = true;
+  DockPanel.setTab(notebook, notebookTab);
+  panel.addWidget(notebook);
+  return true;
+};
+
+function newEditor(): boolean {
+  var cm = new CodeMirrorWidget({
+    mode: 'python',
+    lineNumbers: true,
+    tabSize: 2,
+  });
+  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)');
+  var cmTab = new Tab('Editor');
+  cmTab.closable = true;
+  DockPanel.setTab(cm, cmTab);
+  panel.addWidget(cm);
+  return true;
+};
+
+function newTerminal(): boolean {
+  var wsUrl = "ws://localhost:8888/terminals/websocket/1"
+  var term = new TerminalWidget(wsUrl);
+  var termTab = new Tab('Terminal');
+  termTab.closable = true;
+  DockPanel.setTab(term, termTab);
+  panel.addWidget(term);
+  return true;
+};
+
+function newFileBrowser(): boolean {
+  var listing = new FileBrowser('http://localhost:8888', '.');
+  var listingTab = new Tab('File Browser');
+  listingTab.closable = true;
+  DockPanel.setTab(listing, listingTab);
+  listing.listDir();
+
+  // listing.onClick = (path, contents) => {
+  //   cm.loadFile(path, contents);
+  // }
+  panel.addWidget(listing);
+  return true;
+}
+
+var MENU_BAR_TEMPLATE = [
+  {
+    text: 'File',
+    submenu: [
+      {
+        text: 'New',
+        submenu: [
+          {
+            text: 'Notebook',
+            shortcut: 'Ctrl+N',
+            handler: newNotebook
+          },
+          {
+            text: 'Code Editor',
+            shortcut: 'Ctrl+E',
+            handler: newEditor
+          },
+          {
+            text: 'Terminal',
+            shortcut: 'Ctrl+T',
+            handler: newTerminal
+          },
+          {
+            text: 'File Browser',
+            shortcut: 'Ctrl+F',
+            handler: newFileBrowser
+          }
+        ]
+      }
+    ]
+  }
+];
+
 
 function main(): void {
 
@@ -446,19 +542,20 @@ function main(): void {
     lineNumbers: true,
     tabSize: 2,
   });
-  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)'); 
+  cm.editor.getDoc().setValue('import numpy as np\nx = np.ones(3)');
   var cmTab = new Tab('Editor');
+  cmTab.closable = true;
   DockPanel.setTab(cm, cmTab);
+  panel.addWidget(cm);
 
   // Terminal tab
   //
   var wsUrl = "ws://localhost:8888/terminals/websocket/1"
   var term = new TerminalWidget(wsUrl);
   var termTab = new Tab('Terminal');
+  termTab.closable = true;
   DockPanel.setTab(term, termTab);
-
-  var panel = new DockPanel();
-  panel.id = 'main';
+  panel.addWidget(term);
 
   // notebook tab
   var kernelOptions = {
@@ -468,23 +565,43 @@ function main(): void {
   }
   var notebook = new Notebook(kernelOptions);
   var notebookTab = new Tab('Notebook');
+  notebookTab.closable = true;
   DockPanel.setTab(notebook, notebookTab);
+  panel.addWidget(notebook);
 
   // directory listing tab
   var listing = new FileBrowser('http://localhost:8888', '.');
   var listingTab = new Tab('File Browser');
+  listingTab.closable = true;
   DockPanel.setTab(listing, listingTab);
   listing.listDir();
 
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
   }
+  panel.addWidget(listing)
  
   panel.addWidget(cm);
   panel.addWidget(term, DockPanel.SplitBottom, cm);
   panel.addWidget(listing, DockPanel.SplitLeft, term);
   panel.addWidget(notebook, DockPanel.SplitLeft,cm);
 
+  var menuBar = MenuBar.fromTemplate(MENU_BAR_TEMPLATE);
+
+  var keymap = new KeymapManager();
+  keymap.add('*', [
+    { sequence: 'Ctrl+N', handler: newNotebook },
+    { sequence: 'Ctrl+E', handler: newEditor },
+    { sequence: 'Ctrl+T', handler: newTerminal },
+    { sequence: 'Ctrl+F', handler: newFileBrowser }
+  ]);
+
+  document.addEventListener('keydown', event => {
+    keymap.processKeydownEvent(event);
+  });
+
+
+  attachWidget(menuBar, document.body);
   attachWidget(panel, document.body);
   panel.update();
   window.onresize = () => panel.update();
