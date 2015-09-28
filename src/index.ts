@@ -583,10 +583,8 @@ function main(): void {
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
   }
+  
   panel.addWidget(listing)
- 
-  var panel = new DockPanel();
-  panel.id = 'main';
   panel.addWidget(cm);
   panel.addWidget(term, DockPanel.SplitBottom, cm);
   panel.addWidget(listing, DockPanel.SplitLeft, term);
@@ -605,7 +603,6 @@ function main(): void {
   document.addEventListener('keydown', event => {
     keymap.processKeydownEvent(event);
   });
-
 
   attachWidget(menuBar, document.body);
   attachWidget(panel, document.body);
