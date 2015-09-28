@@ -159,7 +159,13 @@ CodeCell.prototype.create_element = function () {
     this.output_model = new outputarea.OutputModel();
     this.output_view = new outputarea.OutputView(this.output_model, document);
     this.output_view.el.className = 'output_area';
-    cell.append(input).append(this.output_view.el);
+
+    var output_area = $('<div/>').addClass('output_area');
+    var output_prompt = $('<div/>').addClass('prompt output_prompt');
+
+    output_area.append(output_prompt);
+    output_area.append(this.output_view.el);
+    cell.append(input).append(output_area);
 
     this.completer = new completer.Completer(this, this.events);
 };
