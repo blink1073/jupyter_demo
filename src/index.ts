@@ -438,8 +438,7 @@ function main(): void {
 
   // Terminal tab
   //
-  var protocol = (window.location.protocol.indexOf("https") === 0) ? "wss" : "ws";
-  var wsUrl = protocol + "://" + window.location.host + "/websocket";
+  var wsUrl = "ws://localhost:8888/terminals/websocket/1"
   var term = new TerminalWidget(wsUrl);
   var termTab = new Tab('Terminal');
   DockPanel.setTab(term, termTab);

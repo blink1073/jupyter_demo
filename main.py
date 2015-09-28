@@ -9,30 +9,17 @@ import sys
 import webbrowser
 import tornado.web
 
-from terminado import TermSocket, SingleTermManager
 
-
-class TerminalPageHandler(tornado.web.RequestHandler):
+class MainPageHandler(tornado.web.RequestHandler):
 
     def get(self):
-        return self.render("index.html", static=self.static_url,
-                           ws_url_path="/websocket")
+        return self.render("index.html", static=self.static_url)
 
 
 def main(argv):
-    if len(sys.argv) > 1:
-        cmd = sys.argv[1]
-    else:
-        cmd = 'bash'
-    term_manager = SingleTermManager(shell_command=[cmd])
-
     handlers = [
-        (r"/websocket", TermSocket,
-         {'term_manager': term_manager}),
-        (r"/", TerminalPageHandler),
+        (r"/", MainPageHandler),
         (r'/(.*)', tornado.web.StaticFileHandler,
-         {'path': '.'}),
-        (r'/*/(.*)', tornado.web.StaticFileHandler,
          {'path': '.'}),
     ]
 
@@ -67,7 +54,6 @@ def main(argv):
         print(" Shutting down on SIGINT")
     finally:
         nb_server.kill()
-        term_manager.shutdown()
         loop.close()
 
 if __name__ == '__main__':
