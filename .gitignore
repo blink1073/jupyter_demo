@@ -13,3 +13,4 @@ docs
 src/*.js
 src/*.d.ts
 src/*.js.map
+notebook
