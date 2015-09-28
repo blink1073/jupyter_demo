@@ -231,28 +231,18 @@ class FileBrowser extends Widget {
 
   static createNode(): HTMLElement {
     var node = document.createElement('div');
-    var ul = document.createElement('ul');
-    node.appendChild(ul);
+    var inner = document.createElement('div');
+    inner.className = 'list_container';
+    node.appendChild(inner);
     return node;
   }
 
-  constructor(baseUrl) {
+  constructor(baseUrl, currentDir) {
     super();
     this.addClass('content');
     this._contents = new Contents(baseUrl);
     document.addEventListener('mousedown', this, true);
-    this._currentDir = '';
-    this._contents.listContents('.').then((msg) => {
-      console.log('msg', msg);
-      for (var i = 0; i < msg.content.length; i++ ) {
-        var node = document.createElement('li');
-        node.innerText = (<any>msg).content[i].path;
-        if ((<any>msg).content[i].type === 'directory') {
-          node.innerText += '/';
-        }
-        this.node.firstChild.appendChild(node);
-      }
-    });
+    this._currentDir = currentDir;
   }
 
   get onClick(): (name: string, contents: string) => void {
@@ -279,10 +269,10 @@ class FileBrowser extends Widget {
     }
     if (event.type === 'mousedown') {
       var el = event.target as HTMLElement;
-      var text = el.innerText;
+      var text = el.textContent;
       if (text[text.length - 1] == '/') {
         this._currentDir += text;
-        this._listDir();
+        this.listDir();
       } else if (text == '..') {
          var parts = this._currentDir.split('/');
          var parts = parts.slice(0, parts.length - 2);
@@ -291,9 +281,9 @@ class FileBrowser extends Widget {
          } else {
            this._currentDir = parts.join('/') + '/';
          }
-         this._listDir();
+         this.listDir();
       } else {
-        var text = (<HTMLElement>event.target).innerText;
+        var text = (<HTMLElement>event.target).textContent;
         this._contents.get(text, { type: "file" }).then(msg => {
           var onClick = this._onClick;
           if (onClick) onClick(msg.path, msg.content);
@@ -302,29 +292,53 @@ class FileBrowser extends Widget {
     }
   }
 
-  _listDir() {
+  listDir() {
 
     while (this.node.firstChild.hasChildNodes()) {
        this.node.firstChild.removeChild(this.node.firstChild.lastChild);
     }
 
     if (this._currentDir.lastIndexOf('/') !== -1) {
-      var node = document.createElement('li');
-      node.innerText = '..';
-      this.node.firstChild.appendChild(node);
+      this._addItem('..', true);
     }
 
     var path = this._currentDir.slice(0, this._currentDir.length - 1);
     this._contents.listContents(path).then((msg) => {
       for (var i = 0; i < msg.content.length; i++ ) {
-        var node = document.createElement('li');
-        node.innerText = (<any>msg).content[i].name;
         if ((<any>msg).content[i].type === 'directory') {
-          node.innerText += '/';
+          this._addItem((<any>msg).content[i].name + '/', true);
+        } else {
+          this._addItem((<any>msg).content[i].name, false);
         }
-        this.node.firstChild.appendChild(node);
       }
     });
+  }
+
+  private _addItem(text: string, isDirectory: boolean) {
+    var top = document.createElement('div');
+    top.className = 'list_item'
+    top.classList.add('row');
+    var node = document.createElement('div');
+    node.classList.add('col-md-12');
+    var inode = document.createElement('i');
+    inode.className = 'item_icon';
+    inode.style.display = 'inline-block'
+    var lnode = document.createElement('div');
+    lnode.className = 'item_link';
+    lnode.classList.add('row');
+    inode.classList.add('icon-fixed-width');
+    lnode.style.display = 'inline-block';
+    lnode.textContent = text;
+    if (isDirectory) {
+      inode.classList.add('folder_icon');
+    } else {
+      inode.classList.add('file_icon');
+    }
+    node.appendChild(inode);
+    node.appendChild(lnode);
+    top.appendChild(node);
+    this.node.firstChild.appendChild(top);
+
   }
 
   private _currentDir = '';
@@ -457,9 +471,10 @@ function main(): void {
   DockPanel.setTab(notebook, notebookTab);
 
   // directory listing tab
-  var listing = new FileBrowser('http://localhost:8888');
-  var listingTab = new Tab('Directory Listing');
+  var listing = new FileBrowser('http://localhost:8888', '.');
+  var listingTab = new Tab('File Browser');
   DockPanel.setTab(listing, listingTab);
+  listing.listDir();
 
   listing.onClick = (path, contents) => {
     cm.loadFile(path, contents);
