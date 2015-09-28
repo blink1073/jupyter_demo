@@ -5,7 +5,6 @@
 
 export
 var ActionHandler = function (env) {
-    console.log('got env', env);
     this.env = env || {};
     Object.seal(this);
 };

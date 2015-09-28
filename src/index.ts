@@ -384,7 +384,6 @@ class Notebook extends Widget {
   start(kernelOptions) {
     startNewKernel(kernelOptions).then(kernel => {
       this._kernel = kernel;
-      console.log('Kernel started');
       var Events = function () {};
       this._events = $([new Events()]);
       var env = { notebook: this };
