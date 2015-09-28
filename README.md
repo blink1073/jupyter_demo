@@ -6,4 +6,4 @@ To install:
 
 To run the demo:
 
-`python src/main.py
+`python main.py`
