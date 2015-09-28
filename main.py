@@ -17,6 +17,9 @@ class MainPageHandler(tornado.web.RequestHandler):
 
 
 def main(argv):
+
+    url = "http://localhost:8765"
+
     handlers = [
         (r"/", MainPageHandler),
         (r'/(.*)', tornado.web.StaticFileHandler,
@@ -24,7 +27,7 @@ def main(argv):
     ]
 
     nb_command = [sys.executable, '-m', 'notebook', '--no-browser',
-                  '--NotebookApp.allow_origin="*"']
+                  '--NotebookApp.allow_origin="%s"' % url]
     nb_server = subprocess.Popen(nb_command, stderr=subprocess.STDOUT,
                                  stdout=subprocess.PIPE)
 
@@ -45,7 +48,6 @@ def main(argv):
                                   template_path='.')
 
     app.listen(8765, 'localhost')
-    url = "http://localhost:8765/"
     loop = tornado.ioloop.IOLoop.instance()
     loop.add_callback(webbrowser.open, url)
     try:
