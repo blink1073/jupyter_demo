@@ -13,15 +13,15 @@ import {
 
 import {
   Message
-} from '../node_modules/phosphor-messaging';
+} from 'phosphor-messaging';
 
 import {
   Tab
-} from '../node_modules/phosphor-tabs';
+} from 'phosphor-tabs';
 
 import {
   ResizeMessage, Widget, attachWidget
-} from '../node_modules/phosphor-widget';
+} from 'phosphor-widget';
 
 import {
   Terminal, ITerminalConfig
