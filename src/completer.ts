@@ -157,18 +157,19 @@ Completer.prototype.carry_on_completion = function (first_invocation) {
             cursor_end: cursor_pos,
         }});
     } else {
-        this.cell.kernel.complete(this.editor.getValue(), cursor_pos,
-            $.proxy(this.finish_completing, this)
-        );
+        var request = { code: this.editor.getValue(), 
+                        cursor_pos: cursor_pos };
+        this.cell.kernel.complete(request).then(content => {
+            this.finish_completing(content);
+        });
     }
 };
 
-Completer.prototype.finish_completing = function (msg) {
+Completer.prototype.finish_completing = function (content) {
     /**
      * let's build a function that wrap all that stuff into what is needed
      * for the new completer:
      */
-    var content = msg.content;
     var start = content.cursor_start;
     var end = content.cursor_end;
     var matches = content.matches;

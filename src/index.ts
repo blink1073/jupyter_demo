@@ -405,8 +405,10 @@ class Notebook extends Widget {
   }
 
   private _createCell() {
+
     var options = {
       keyboard_manager: this._manager,
+      notebook: this,
       events: this._events,
       tooltip: this._tooltip
     }
@@ -416,8 +418,10 @@ class Notebook extends Widget {
     cell.set_input_prompt();
     cell.select();
     cell.focus_editor();
+    cell.selection_anchor = true;
     cell.render();
     cell.refresh();
+    cell.mode = 'edit';
 
     this._events.trigger('create.Cell', 
                          { 'cell': cell, 'index': this._cells.length });
@@ -581,6 +585,11 @@ function main(): void {
 
   var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
+
+  var tooltip = document.createElement('div');
+  tooltip.id = 'tooltip';
+  tooltip.className = 'ipython_tooltip';
+  tooltip.style.display = 'none';
 
   attachWidget(panel, document.body);
   panel.update();
