@@ -15,13 +15,15 @@ body {
 #main {
   position: absolute;
   top: 30px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  left: 5px;
+  right: 5px;
+  bottom: 5px;
 }
 
 
 .TerminalWidget {
+  min-width: 50px;
+  min-height: 50px;
   background: black;
 }
 
@@ -32,13 +34,28 @@ body {
   font: 14px Helvetica, Arial, sans-serif;
 }
 
+/*
 .content {
   border: 1px solid black;
   min-width: 50px;
   min-height: 50px;
   overflow: auto;
 }
+*/
 
+.CodeMirrorWidget {
+  min-width: 50px;
+  min-height: 50px;
+  border: 1px solid #C0C0C0;
+}
+
+
+.NotebookWidget {
+  min-width: 150px;
+  min-height: 150px;
+  overflow: auto;
+  border: 1px solid #C0C0C0;
+}
 
 .red {
   background: #E74C3C;
@@ -67,7 +84,7 @@ body {
 
 
 .p-DockTabPanel > .p-StackedPanel {
-  padding: 10px;
+  padding: 5px;
   background: white;
   border: 1px solid #C0C0C0;
   border-top: none;
@@ -232,7 +249,7 @@ body {
 
 .p-MenuBar {
   padding-left: 5px;
-  background: #FAFAFA;
+  background: #FCFCFC;
   color: rgba(0, 0, 0, 0.87);
   border-bottom: 1px solid #DDDDDD;
   font: 13px Helvetica, Arial, sans-serif;

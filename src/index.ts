@@ -39,7 +39,7 @@ import {
   Terminal, ITerminalConfig
 } from 'term.js';
 
-import { 
+import {
   startNewKernel, Contents
 } from '../jupyter-js-services/index';
 
@@ -72,16 +72,13 @@ class TerminalWidget extends Widget {
 
   static nterms = 0;
 
-  static createTerminal(config?: ITerminalConfig) : TerminalWidget{
+  static createTerminal(config?: ITerminalConfig) : TerminalWidget {
     TerminalWidget.nterms += 1;
     var wsUrl = `ws://${ADDRESS}/terminals/websocket/${TerminalWidget.nterms}`;
     var term = new TerminalWidget(wsUrl, config);
     return term;
   }
 
-  /*
-   * Construct a new terminal.
-   */
   constructor(ws_url: string, config?: ITerminalConfig) {
     super();
     this.addClass('TerminalWidget');
@@ -98,35 +95,16 @@ class TerminalWidget extends Widget {
     this._ws.onmessage = (event: MessageEvent) => {
       var json_msg = JSON.parse(event.data);
       switch (json_msg[0]) {
-        case "stdout":
-          this._term.write(json_msg[1]);
-          break;
-        case "disconnect":
-          this._term.write("\r\n\r\n[Finished... Term Session]\r\n");
-          break;
-        }
-      };
-
-    // create a dummy terminal to get row/column size
-    this._dummy_term = document.createElement('div');
-    this._dummy_term.style.visibility = "hidden";
-    var pre = document.createElement('pre');
-    var span = document.createElement('span');
-    pre.appendChild(span);
-    // 24 rows
-    pre.innerHTML = "<br><br><br><br><br><br><br><br><br><br><br><br>" +
-    "<br><br><br><br><br><br><br><br><br><br><br><br>"
-    // 1 row + 80 columns
-    span.innerHTML = "012345678901234567890123456789" +
-    "012345678901234567890123456789" +
-    "01234567890123456789";
-    this._dummy_term.appendChild(pre);
-    this._term.element.appendChild(this._dummy_term);
+      case 'stdout':
+        this._term.write(json_msg[1]);
+        break;
+      case 'disconnect':
+        this._term.write('\r\n\r\n[Finished... Term Session]\r\n');
+        break;
+      }
+    };
   }
 
-  /**
-   * Dispose of the resources held by the widget.
-   */
   dispose(): void {
     this._term.destroy();
     this._ws = null;
@@ -134,64 +112,38 @@ class TerminalWidget extends Widget {
     super.dispose();
   }
 
-  get config(): ITerminalConfig {
-    return this._config;
-  }
-
-  /**
-   * Set the configuration of the terminal.
-   */
-  set config(options: ITerminalConfig) {
-    if (options.useStyle) {
-      this._term.insertStyle(
-        this._term.document, this._term.colors[256], this._term.colors[257]);
-    }
-    else if (options.useStyle === false) {
-      var sheetToBeRemoved = document.getElementById('term-style');
-      if (sheetToBeRemoved) {
-        var sheetParent = sheetToBeRemoved.parentNode;
-        sheetParent.removeChild(sheetToBeRemoved);
-
-      }
-    }
-
-    if (options.useStyle !== null) {
-      // invalidate terminal pixel size
-      this._term_row_height = 0;
-    }
-
-    for (var key in options) {
-      this._term.options[key] = (<any>options)[key];
-    }
-
-    this._config = options;
-  }
-
-  protected resize_term(width: number, height: number): void {
-    if (!this._term_row_height) {
-      this._term_row_height = this._dummy_term.offsetHeight / 25;
-      this._term_col_width = this._dummy_term.offsetWidth / 80;
-      this._dummy_term.style.display = 'none';
-    }
-
-    var rows = Math.max(2, Math.floor(height / this._term_row_height) - 2);
-    var cols = Math.max(3, Math.floor(width / this._term_col_width) - 2);
-
-    rows = this._config.rows || rows;
-    cols = this._config.cols || cols;
-
-    this._term.resize(cols, rows);
+  protected onAfterAttach(msg: Message): void {
+    this._snapTermSizing();
   }
 
   protected onResize(msg: ResizeMessage): void {
-    this.resize_term(msg.width, msg.height);
+    var rows = Math.max(2, Math.round(msg.height / this._row_height) - 1);
+    var cols = Math.max(3, Math.round(msg.width / this._col_width) - 1);
+    this._term.resize(cols, rows);
   }
 
-  private _ws: WebSocket;
+  private _snapTermSizing(): void {
+    var dummy_term = document.createElement('div');
+    dummy_term.style.visibility = 'hidden';
+    dummy_term.innerHTML = (
+      '01234567890123456789' +
+      '01234567890123456789' +
+      '01234567890123456789' +
+      '01234567890123456789'
+    );
+
+    this._term.element.appendChild(dummy_term);
+    this._row_height = dummy_term.offsetHeight;
+    this._col_width = dummy_term.offsetWidth / 80;
+    this._term.element.removeChild(dummy_term);
+
+    console.log(this._row_height);
+  }
+
   private _term: any;
-  private _dummy_term: HTMLElement;
-  private _term_row_height: number;
-  private _term_col_width: number;
+  private _ws: WebSocket;
+  private _row_height: number;
+  private _col_width: number;
   private _config: ITerminalConfig;
 }
 
@@ -366,8 +318,7 @@ class Notebook extends Widget {
   static createNode(): HTMLElement {
     var node = document.createElement('div');
     var container = document.createElement('div');
-    container.className = 'container';
-    container.setAttribute('id', 'notebook-container');
+    container.className = 'container notebook-container';
     node.appendChild(container);
     var tooltip = document.createElement('div');
     tooltip.className = 'ipython_tooltip';
@@ -379,6 +330,7 @@ class Notebook extends Widget {
   constructor() {
     super();
     this.addClass('content');
+    this.addClass('NotebookWidget');
   }
 
   start(kernelOptions) {
@@ -392,7 +344,7 @@ class Notebook extends Widget {
 
       this._manager = new KeyboardManager({
           notebook: this,
-          events: this._events, 
+          events: this._events,
           actions: this._actions });
       this._manager.mode = 'edit';
 
@@ -426,7 +378,7 @@ class Notebook extends Widget {
     cell.refresh();
     cell.mode = 'edit';
 
-    this._events.trigger('create.Cell', 
+    this._events.trigger('create.Cell',
                          { 'cell': cell, 'index': this._cells.length });
     this._cells.push(cell);
   }
@@ -461,7 +413,7 @@ function newEditor(listing?: FileBrowser): CodeMirrorWidget {
     lineNumbers: true,
     tabSize: 2,
   });
-  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)');
   cm.fontSize = '10pt';
   if (listing !== void 0) {
     listing.onClick = (path, contents) => cm.loadFile(path, contents);
@@ -479,8 +431,8 @@ function newFileBrowser(dirname?: string): FileBrowser {
 
 class MainPanel extends DockPanel {
 
-  constructor(listing: FileBrowser) { 
-    super(); 
+  constructor(listing: FileBrowser) {
+    super();
     this._listing = listing;
   }
 
@@ -809,7 +761,7 @@ function createMenuBar(panel: MainPanel): MenuBar {
 
 
 function main(): void {
-  
+
   var listing = newFileBrowser();
   var dock = new MainPanel(listing);
   var keymap = new KeymapManager();
