@@ -143,6 +143,10 @@ KeyboardManager.prototype.set_quickhelp = function (notebook) {
 
 
 KeyboardManager.prototype.handle_keydown = function (event) {
+
+    if (!this.notebook.node.contains(event.target)) {
+        return;
+    }
     /**
      *  returning false from this will stop event propagation
      **/
