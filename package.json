@@ -7,8 +7,8 @@
     "build": "npm run build:src && npm run build:css && npm run build:browser",
     "postinstall": "npm dedupe && cd jupyter-js-services && npm install"
   },
- "dependencies": {
-    "phosphor-arrays": "^1.0.3",
+  "dependencies": {
+    "phosphor-arrays": "^1.0.4",
     "phosphor-boxpanel": "^0.9.3",
     "phosphor-disposable": "^1.0.2",
     "phosphor-dockpanel": "^0.9.1",
@@ -40,7 +40,6 @@
     "requirejs": "^2.1.20",
     "typedoc": "git://github.com/phosphorjs/typedoc.git",
     "typescript": "^1.6.2",
-    "underscore": "^1.8.3",
-    "typedoc": "git://github.com/phosphorjs/typedoc.git"
+    "underscore": "^1.8.3"
   }
 }

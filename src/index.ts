@@ -7,9 +7,12 @@
 |----------------------------------------------------------------------------*/
 'use-strict';
 
+import * as arrays
+  from 'phosphor-arrays';
+
 import {
   DockPanel, DockMode
-} from '../node_modules/phosphor-dockpanel';
+} from 'phosphor-dockpanel';
 
 import {
   KeymapManager
@@ -28,7 +31,7 @@ import {
 } from 'phosphor-splitpanel';
 
 import {
-  Tab, TabPanel
+  Tab, TabPanel, TabBar
 } from 'phosphor-tabs';
 
 import {
@@ -39,7 +42,7 @@ import {
   Terminal, ITerminalConfig
 } from 'term.js';
 
-import { 
+import {
   startNewKernel, Contents
 } from '../jupyter-js-services/index';
 
@@ -67,21 +70,17 @@ import './index.css';
 /**
  * A widget which manages a terminal session.
  */
-export
 class TerminalWidget extends Widget {
 
   static nterms = 0;
 
-  static createTerminal(config?: ITerminalConfig) : TerminalWidget{
+  static createTerminal(config?: ITerminalConfig) : TerminalWidget {
     TerminalWidget.nterms += 1;
     var wsUrl = `ws://${ADDRESS}/terminals/websocket/${TerminalWidget.nterms}`;
     var term = new TerminalWidget(wsUrl, config);
     return term;
   }
 
-  /*
-   * Construct a new terminal.
-   */
   constructor(ws_url: string, config?: ITerminalConfig) {
     super();
     this.addClass('TerminalWidget');
@@ -98,35 +97,16 @@ class TerminalWidget extends Widget {
     this._ws.onmessage = (event: MessageEvent) => {
       var json_msg = JSON.parse(event.data);
       switch (json_msg[0]) {
-        case "stdout":
-          this._term.write(json_msg[1]);
-          break;
-        case "disconnect":
-          this._term.write("\r\n\r\n[Finished... Term Session]\r\n");
-          break;
-        }
-      };
-
-    // create a dummy terminal to get row/column size
-    this._dummy_term = document.createElement('div');
-    this._dummy_term.style.visibility = "hidden";
-    var pre = document.createElement('pre');
-    var span = document.createElement('span');
-    pre.appendChild(span);
-    // 24 rows
-    pre.innerHTML = "<br><br><br><br><br><br><br><br><br><br><br><br>" +
-    "<br><br><br><br><br><br><br><br><br><br><br><br>"
-    // 1 row + 80 columns
-    span.innerHTML = "012345678901234567890123456789" +
-    "012345678901234567890123456789" +
-    "01234567890123456789";
-    this._dummy_term.appendChild(pre);
-    this._term.element.appendChild(this._dummy_term);
+      case 'stdout':
+        this._term.write(json_msg[1]);
+        break;
+      case 'disconnect':
+        this._term.write('\r\n\r\n[Finished... Term Session]\r\n');
+        break;
+      }
+    };
   }
 
-  /**
-   * Dispose of the resources held by the widget.
-   */
   dispose(): void {
     this._term.destroy();
     this._ws = null;
@@ -134,64 +114,36 @@ class TerminalWidget extends Widget {
     super.dispose();
   }
 
-  get config(): ITerminalConfig {
-    return this._config;
-  }
-
-  /**
-   * Set the configuration of the terminal.
-   */
-  set config(options: ITerminalConfig) {
-    if (options.useStyle) {
-      this._term.insertStyle(
-        this._term.document, this._term.colors[256], this._term.colors[257]);
-    }
-    else if (options.useStyle === false) {
-      var sheetToBeRemoved = document.getElementById('term-style');
-      if (sheetToBeRemoved) {
-        var sheetParent = sheetToBeRemoved.parentNode;
-        sheetParent.removeChild(sheetToBeRemoved);
-
-      }
-    }
-
-    if (options.useStyle !== null) {
-      // invalidate terminal pixel size
-      this._term_row_height = 0;
-    }
-
-    for (var key in options) {
-      this._term.options[key] = (<any>options)[key];
-    }
-
-    this._config = options;
-  }
-
-  protected resize_term(width: number, height: number): void {
-    if (!this._term_row_height) {
-      this._term_row_height = this._dummy_term.offsetHeight / 25;
-      this._term_col_width = this._dummy_term.offsetWidth / 80;
-      this._dummy_term.style.display = 'none';
-    }
-
-    var rows = Math.max(2, Math.floor(height / this._term_row_height) - 2);
-    var cols = Math.max(3, Math.floor(width / this._term_col_width) - 2);
-
-    rows = this._config.rows || rows;
-    cols = this._config.cols || cols;
-
-    this._term.resize(cols, rows);
+  protected onAfterAttach(msg: Message): void {
+    this._snapTermSizing();
   }
 
   protected onResize(msg: ResizeMessage): void {
-    this.resize_term(msg.width, msg.height);
+    var rows = Math.max(2, Math.round(msg.height / this._row_height) - 1);
+    var cols = Math.max(3, Math.round(msg.width / this._col_width) - 1);
+    this._term.resize(cols, rows);
   }
 
-  private _ws: WebSocket;
+  private _snapTermSizing(): void {
+    var dummy_term = document.createElement('div');
+    dummy_term.style.visibility = 'hidden';
+    dummy_term.innerHTML = (
+      '01234567890123456789' +
+      '01234567890123456789' +
+      '01234567890123456789' +
+      '01234567890123456789'
+    );
+
+    this._term.element.appendChild(dummy_term);
+    this._row_height = dummy_term.offsetHeight;
+    this._col_width = dummy_term.offsetWidth / 80;
+    this._term.element.removeChild(dummy_term);
+  }
+
   private _term: any;
-  private _dummy_term: HTMLElement;
-  private _term_row_height: number;
-  private _term_col_width: number;
+  private _ws: WebSocket;
+  private _row_height: number;
+  private _col_width: number;
   private _config: ITerminalConfig;
 }
 
@@ -255,15 +207,18 @@ class FileBrowser extends Widget {
 
   static createNode(): HTMLElement {
     var node = document.createElement('div');
-    var inner = document.createElement('div');
-    inner.className = 'list_container';
-    node.appendChild(inner);
+    node.innerHTML = (
+      '<div class="files_inner">' +
+        '<div class="files_header">Files</div>' +
+        '<div class="list_container"></div>' +
+      '</div>'
+    );
     return node;
   }
 
   constructor(baseUrl, currentDir) {
     super();
-    this.addClass('content');
+    this.addClass('FileBrowser');
     this._contents = new Contents(baseUrl);
     document.addEventListener('mousedown', this, true);
     this._currentDir = currentDir;
@@ -308,9 +263,7 @@ class FileBrowser extends Widget {
   }
 
   listDir() {
-    while (this.node.firstChild.hasChildNodes()) {
-       this.node.firstChild.removeChild(this.node.firstChild.lastChild);
-    }
+    this.node.firstChild.lastChild.textContent = '';
     if (this._currentDir.lastIndexOf('/') !== -1) {
       this._addItem('..', true);
     }
@@ -348,8 +301,7 @@ class FileBrowser extends Widget {
     node.appendChild(inode);
     node.appendChild(lnode);
     top.appendChild(node);
-    this.node.firstChild.appendChild(top);
-
+    this.node.firstChild.lastChild.appendChild(top);
   }
 
   private _currentDir = '';
@@ -366,12 +318,11 @@ class Notebook extends Widget {
   static createNode(): HTMLElement {
     var node = document.createElement('div');
     var container = document.createElement('div');
-    container.className = 'container';
-    container.setAttribute('id', 'notebook-container');
-    node.appendChild(container);
     var tooltip = document.createElement('div');
+    container.className = 'container notebook-container';
     tooltip.className = 'ipython_tooltip';
     tooltip.style.display = 'none';
+    node.appendChild(container);
     node.appendChild(tooltip);
     return node;
   }
@@ -379,6 +330,7 @@ class Notebook extends Widget {
   constructor() {
     super();
     this.addClass('content');
+    this.addClass('NotebookWidget');
   }
 
   start(kernelOptions) {
@@ -392,7 +344,7 @@ class Notebook extends Widget {
 
       this._manager = new KeyboardManager({
           notebook: this,
-          events: this._events, 
+          events: this._events,
           actions: this._actions });
       this._manager.mode = 'edit';
 
@@ -426,8 +378,8 @@ class Notebook extends Widget {
     cell.refresh();
     cell.mode = 'edit';
 
-    this._events.trigger('create.Cell', 
-                         { 'cell': cell, 'index': this._cells.length });
+    var args = { 'cell': cell, 'index': this._cells.length };
+    this._events.trigger('create.Cell', args);
     this._cells.push(cell);
   }
 
@@ -455,17 +407,14 @@ function newNotebook(): Notebook {
 }
 
 
-function newEditor(listing?: FileBrowser): CodeMirrorWidget {
+function newEditor(): CodeMirrorWidget {
   var cm = new CodeMirrorWidget({
     mode: 'python',
     lineNumbers: true,
     tabSize: 2,
   });
-  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)'); 
+  cm.loadFile('test.py', 'import numpy as np\nx = np.ones(3)');
   cm.fontSize = '10pt';
-  if (listing !== void 0) {
-    listing.onClick = (path, contents) => cm.loadFile(path, contents);
-  }
   return cm;
 }
 
@@ -479,48 +428,87 @@ function newFileBrowser(dirname?: string): FileBrowser {
 
 class MainPanel extends DockPanel {
 
-  constructor(listing: FileBrowser) { 
-    super(); 
-    this._listing = listing;
-  }
-
-  newNotebook(mode?: DockMode, ref?: Widget): boolean {
+  newNotebook(closable = false): boolean {
     var notebook = newNotebook();
     var tab = new Tab('Notebook');
-    tab.closable = true;
+    tab.closable = closable;
     DockPanel.setTab(notebook, tab);
+    var ref = this._getInsertTarget();
+    var mode = ref ? DockPanel.TabAfter : DockPanel.TabBefore;
     this.addWidget(notebook, mode, ref);
+    this._widgets.push(notebook);
+    this._activateTarget(notebook);
     return true;
   }
 
-  newEditor(mode?: DockMode, ref?: Widget): boolean {
-    var editor = newEditor(this._listing);
+  newEditor(closable = false): CodeMirrorWidget {
+    var editor = newEditor();
     var tab = new Tab('Code Editor');
-    tab.closable = true;
+    tab.closable = closable;
     DockPanel.setTab(editor, tab);
-    this.addWidget(editor, mode, ref);
-    return true;
+    var ref = this._getInsertTarget();
+    this.addWidget(editor, DockPanel.TabAfter, ref);
+    this._widgets.push(editor);
+    this._activateTarget(editor);
+    return editor;
   }
 
-  newTerminal(mode?: DockMode, ref?: Widget): boolean {
+  newTerminal(closable = false): boolean {
     var term = TerminalWidget.createTerminal();
     var tab = new Tab(`Terminal ${TerminalWidget.nterms}`);
-    tab.closable = true;
+    tab.closable = closable;
     DockPanel.setTab(term, tab);
+    var ref = this._getInsertTarget();
+    var mode = ref ? DockPanel.TabAfter : DockPanel.SplitBottom;
     this.addWidget(term, mode, ref);
+    this._widgets.push(term);
+    //this._activateTarget(term);
     return true;
   }
 
-  newFileBrowser(mode?: DockMode, ref?: Widget): boolean {
-    var listing = newFileBrowser();
-    var tab = new Tab('File Browser');
-    tab.closable = true;
-    DockPanel.setTab(listing, tab);
-    this.addWidget(listing, mode, ref);
+  newNotebookEx(mode: DockMode): boolean {
+    var notebook = newNotebook();
+    var tab = new Tab('Notebook');
+    tab.closable = false;
+    DockPanel.setTab(notebook, tab);
+    this.addWidget(notebook, mode);
+    this._widgets.push(notebook);
+    this._activateTarget(notebook);
     return true;
   }
 
-  private _listing: FileBrowser = null;
+  newEditorEx(mode: DockMode): CodeMirrorWidget {
+    var editor = newEditor();
+    var tab = new Tab('Code Editor');
+    tab.closable = false;
+    DockPanel.setTab(editor, tab);
+    this.addWidget(editor, mode);
+    this._widgets.push(editor);
+    this._activateTarget(editor);
+    return editor;
+  }
+
+  newTerminalEx(mode: DockMode): boolean {
+    var term = TerminalWidget.createTerminal();
+    var tab = new Tab(`Terminal ${TerminalWidget.nterms}`);
+    tab.closable = false;
+    DockPanel.setTab(term, tab);
+    this.addWidget(term, mode);
+    this._widgets.push(term);
+    return true;
+  }
+
+  private _getInsertTarget(): Widget {
+    var active = document.activeElement as HTMLElement
+    var ref = arrays.find(this._widgets, w => w.node.contains(active));
+    return ref || this._widgets[this._widgets.length - 1];
+  }
+
+  private _activateTarget(widget: Widget) {
+    var tabBar = widget.parent.parent.children[0] as TabBar;
+    tabBar.selectedTab = DockPanel.getTab(widget);
+  }
+  private _widgets: Widget[] = [];
 }
 
 
@@ -535,23 +523,18 @@ function createMenuBar(panel: MainPanel): MenuBar {
             {
               text: 'Notebook',
               shortcut: 'Ctrl+N',
-              handler: panel.newNotebook.bind(panel)
+              handler: () => panel.newNotebook(true),
             },
             {
               text: 'Code Editor',
               shortcut: 'Ctrl+E',
-              handler: panel.newEditor.bind(panel)
+              handler: () => panel.newEditor(true),
             },
-            {
-              text: 'Terminal',
-              shortcut: 'Ctrl+T',
-              handler: panel.newTerminal.bind(panel)
-            },
-            {
-              text: 'File Browser',
-              shortcut: 'Ctrl+F',
-              handler: panel.newFileBrowser.bind(panel)
-            }
+            // {
+            //   text: 'Terminal',
+            //   shortcut: 'Ctrl+T',
+            //   handler: () => panel.newTerminal(true),
+            // }
           ]
         },
         {
@@ -809,42 +792,47 @@ function createMenuBar(panel: MainPanel): MenuBar {
 
 
 function main(): void {
-  
+
   var listing = newFileBrowser();
-  var dock = new MainPanel(listing);
+  var dock = new MainPanel();
   var keymap = new KeymapManager();
+
+  function toggleListing(): boolean {
+    listing.hidden = !listing.hidden;
+    return true;
+  }
+
+  listing.onClick = (path, contents) => {
+    var cm = dock.newEditor(true);
+    cm.loadFile(path, contents);
+    var parts = path.split('/');
+    var name = parts[parts.length - 1];
+    DockPanel.getTab(cm).text = name;
+  };
+
+
   keymap.add('*', [
-    { sequence: 'Ctrl+N', handler: dock.newNotebook.bind(dock) },
-    { sequence: 'Ctrl+E', handler: dock.newEditor.bind(dock) },
-    { sequence: 'Ctrl+T', handler: dock.newTerminal.bind(dock) },
-    { sequence: 'Ctrl+F', handler: dock.newTerminal.bind(dock) },
+    { sequence: 'Ctrl+N', handler: dock.newNotebook.bind(dock, true) },
+    { sequence: 'Ctrl+E', handler: dock.newEditor.bind(dock, true) },
+    // { sequence: 'Ctrl+T', handler: dock.newTerminal.bind(dock) }
+    { sequence: 'Ctrl+F', handler: toggleListing }
   ]);
 
   document.addEventListener('keydown', event => {
     keymap.processKeydownEvent(event);
   });
 
-  var running = new Widget();
-  var runTab = new Tab('Running');
-  runTab.closable = true;
-
-  TabPanel.setTab(listing, new Tab('Files'));
-  TabPanel.setTab(running, runTab);
-
-  var leftPanel = new TabPanel();
-  leftPanel.id = 'left';
-
-  leftPanel.widgets = [listing, running];
-
   var panel = new SplitPanel();
   panel.id = 'main';
 
-  panel.children = [leftPanel, dock];
+  panel.children = [listing, dock];
   panel.setSizes([1, 3]);
 
-  dock.newEditor();
-  dock.newTerminal(DockMode.SplitBottom, dock.children[0]);
-  dock.newNotebook(DockMode.SplitLeft, dock.children[1]);
+  var cm = dock.newEditor();
+  dock.newTerminalEx(DockMode.SplitBottom);
+  dock.newNotebookEx(DockMode.SplitLeft);
+
+  DockPanel.getTab(cm).text = 'Sample';
 
   var menuBar = createMenuBar(dock);
   attachWidget(menuBar, document.body);
@@ -854,5 +842,5 @@ function main(): void {
   window.onresize = () => panel.update();
 }
 
-window.onload = main;
 
+window.onload = main;

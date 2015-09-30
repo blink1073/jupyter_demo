@@ -51,7 +51,7 @@ def main(argv):
 
     app.listen(8765, 'localhost')
     loop = tornado.ioloop.IOLoop.instance()
-    loop.add_callback(webbrowser.open, url)
+    #loop.add_callback(webbrowser.open, url)
     try:
         loop.start()
     except KeyboardInterrupt:

@@ -34,15 +34,15 @@ label {
 }
 /* Flexible box model classes */
 /* Taken from Alex Russell http://infrequently.org/2009/08/css-3-progress/ */
-/* This file is a compatability layer.  It allows the usage of flexible box 
+/* This file is a compatability layer.  It allows the usage of flexible box
 model layouts accross multiple browsers, including older browsers.  The newest,
 universal implementation of the flexible box model is used when available (see
-`Modern browsers` comments below).  Browsers that are known to implement this 
+`Modern browsers` comments below).  Browsers that are known to implement this
 new spec completely include:
 
     Firefox 28.0+
     Chrome 29.0+
-    Internet Explorer 11+ 
+    Internet Explorer 11+
     Opera 17.0+
 
 Browsers not listed, including Safari, are supported via the styling under the
@@ -393,11 +393,13 @@ div.cell.selected {
   /* This has to match that of the the CodeMirror class line-height below */
   line-height: 1.21429em;
 }
+/*
 @media (max-width: 540px) {
   .prompt {
     text-align: left;
   }
 }
+*/
 div.inner_cell {
   /* Old browsers */
   display: -webkit-box;
@@ -472,11 +474,13 @@ div.unrecognized_cell .inner_cell a:hover {
   color: inherit;
   text-decoration: none;
 }
+/*
 @media (max-width: 540px) {
   div.unrecognized_cell > div.prompt {
     display: none;
   }
 }
+*/
 div.code_cell {
   /* avoid page breaking on code cells when printing */
 }
@@ -503,9 +507,10 @@ div.input {
   flex-direction: row;
   align-items: stretch;
 }
+/*
 @media (max-width: 540px) {
   div.input {
-    /* Old browsers */
+    /* Old browsers *
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-box-align: stretch;
@@ -515,12 +520,14 @@ div.input {
     display: box;
     box-orient: vertical;
     box-align: stretch;
-    /* Modern browsers */
+    /* Modern browsers *
     display: flex;
     flex-direction: column;
     align-items: stretch;
   }
 }
+*/
+
 /* input_area and input_prompt must match in top border and margin for alignment */
 div.input_prompt {
   color: navy;
@@ -852,9 +859,10 @@ div.output_area svg.unconfined {
   flex-direction: column;
   align-items: stretch;
 }
+/*
 @media (max-width: 540px) {
   div.output_area {
-    /* Old browsers */
+    /* Old browsers *
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-box-align: stretch;
@@ -864,12 +872,13 @@ div.output_area svg.unconfined {
     display: box;
     box-orient: vertical;
     box-align: stretch;
-    /* Modern browsers */
+    /* Modern browsers *
     display: flex;
     flex-direction: column;
     align-items: stretch;
   }
 }
+*/
 div.output_area pre {
   margin: 0;
   padding: 0;
@@ -1151,11 +1160,13 @@ div.text_cell {
   flex-direction: row;
   align-items: stretch;
 }
+/*
 @media (max-width: 540px) {
   div.text_cell > div.prompt {
     display: none;
   }
 }
+*/
 div.text_cell_render {
   /*font-family: "Helvetica Neue", Arial, Helvetica, Geneva, sans-serif;*/
   outline: none;
