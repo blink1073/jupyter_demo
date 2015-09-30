@@ -51,6 +51,7 @@ def main(argv):
 
     app.listen(8765, 'localhost')
     loop = tornado.ioloop.IOLoop.instance()
+    print('Browse to http://localhost:8765')
     #loop.add_callback(webbrowser.open, url)
     try:
         loop.start()
