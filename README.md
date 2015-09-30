@@ -1,8 +1,10 @@
 
 To install:
 
-- npm install 
-- npm run build
+```
+npm install 
+npm run build
+```
 
 Requires the development version of Jupyter Notebook:
 
