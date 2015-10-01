@@ -1,4 +1,10 @@
 
+This is a proof on concept demonstration of integrating the refactoring work
+on the Jupyter Notebook with Phosphor widgets.  It is not meant to be a fully
+functional notebook.  Future development will occur in jupyter/notebook and 
+related jupyter repositories.  Enjoy!
+
+
 To install:
 
 ```
