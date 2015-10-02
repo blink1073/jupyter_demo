@@ -119,6 +119,8 @@ class TerminalWidget extends Widget {
   }
 
   protected onResize(msg: ResizeMessage): void {
+    if (!this._row_height) this._row_height = 1;
+    if (!this._col_width) this._col_width = 1;
     var rows = Math.max(2, Math.round(msg.height / this._row_height) - 1);
     var cols = Math.max(3, Math.round(msg.width / this._col_width) - 1);
     this._term.resize(cols, rows);
@@ -530,11 +532,11 @@ function createMenuBar(panel: MainPanel): MenuBar {
               shortcut: 'Ctrl+E',
               handler: () => panel.newEditor(true),
             },
-            // {
-            //   text: 'Terminal',
-            //   shortcut: 'Ctrl+T',
-            //   handler: () => panel.newTerminal(true),
-            // }
+            {
+              text: 'Terminal',
+              shortcut: 'Ctrl+T',
+              handler: () => panel.newTerminal(true),
+            }
           ]
         },
         {
