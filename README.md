@@ -16,7 +16,11 @@ Requires the development version of Jupyter Notebook:
 
 `pip install git+https://github.com/jupyter/notebook`
 
-To run the demo:
+To run the demo, start a notebook server by insuring that cross origin access is set up correctly :
+
+`jupyter notebook --NotebookApp.allow_origin='http://localhost:8765'`
+
+Then run the demo server. 
 
 `python main.py`
 
